@@ -1,8 +1,8 @@
 PHP_ARG_ENABLE(git2, Whether to enable the "git2" extension,
-	[  --enable-git2      Enable "php-git2" extension support])
+	[  --enable-git2           Enable "php-git2" extension support])
 
 PHP_ARG_ENABLE(git2-static, to build with static libgit2,
-	[ --enable-git2-static		Build php-git2 with static libgit2], no, no)
+	[  --enable-git2-static	  Build php-git2 with static libgit2], no, no)
 
 if test $PHP_GIT2 != "no"; then
 	PHP_SUBST(GIT2_SHARED_LIBADD)
