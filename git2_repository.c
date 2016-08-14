@@ -1,7 +1,13 @@
 #include "php_git2.h"
 #include "git2_repository.h"
 
-zend_class_entry *php_git2_repository_ce;
+static zend_class_entry *php_git2_repository_ce;
+static zend_object_handlers php_git2_repository_handler;
+
+typedef struct _git2_repository_object {
+	zend_object std;
+	// TODO
+} git2_repository_object_t;
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_open, 0, 0, 1)
 	ZEND_ARG_INFO(0, path)
@@ -21,12 +27,23 @@ PHP_METHOD(Repository, open) {
 }
 
 zend_object *php_git2_repository_create_object(zend_class_entry *class_type TSRMLS_DC) {
-	zend_object *result;
-	
-	result = zend_objects_new(class_type TSRMLS_CC);
-	object_properties_init(result, class_type);
+	git2_repository_object_t *intern = NULL;
 
-	return result;
+	intern = emalloc(sizeof(git2_repository_object_t));
+	memset(intern, 0, sizeof(git2_repository_object_t));
+
+	zend_object_std_init(&intern->std, class_type TSRMLS_CC);
+	object_properties_init(&intern->std, class_type);
+
+	intern->std.handlers = &php_git2_repository_handler;
+
+	return &intern->std;
+}
+
+static void php_git2_repository_free_object(zend_object *object TSRMLS_DC) {
+	git2_repository_object_t *intern = (git2_repository_object_t*)object;
+
+	// TODO
 }
 
 static zend_function_entry git2_repository_methods[] = {
@@ -41,5 +58,9 @@ void git2_repository_init() {
 	INIT_NS_CLASS_ENTRY(ce, "Git2", "Repository", git2_repository_methods);
 	php_git2_repository_ce = zend_register_internal_class(&ce TSRMLS_CC);
 	php_git2_repository_ce->create_object = php_git2_repository_create_object;
+
+	memcpy(&php_git2_repository_handler, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+	php_git2_repository_handler.clone_obj = NULL;
+	php_git2_repository_handler.free_obj = php_git2_repository_free_object;
 }
 
