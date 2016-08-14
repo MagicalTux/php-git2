@@ -11,7 +11,7 @@ typedef struct _git2_repository_object {
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_open, 0, 0, 1)
 	ZEND_ARG_INFO(0, path)
-	ZEND_ARG_INFO(1, flags)
+	ZEND_ARG_INFO(0, flags)
 ZEND_END_ARG_INFO()
 
 PHP_METHOD(Repository, open) {
@@ -29,6 +29,33 @@ PHP_METHOD(Repository, open) {
 	intern = (git2_repository_object_t*)Z_OBJ_P(return_value);
 
 	int res = git_repository_open_ext(&intern->repo, path, flags, NULL);
+
+	if (res != 0) {
+		// TODO Throw exception
+		RETURN_FALSE;
+	}
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_init, 0, 0, 1)
+	ZEND_ARG_INFO(0, path)
+	ZEND_ARG_INFO(0, is_bare)
+ZEND_END_ARG_INFO()
+
+PHP_METHOD(Repository, init) {
+	char *path;
+	size_t path_len;
+	zend_bool is_bare = 0;
+	git2_repository_object_t *intern;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|b", &path, &path_len, &is_bare) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	object_init_ex(return_value, php_git2_repository_ce);
+
+	intern = (git2_repository_object_t*)Z_OBJ_P(return_value);
+
+	int res = git_repository_init(&intern->repo, path, is_bare ? 1 : 0);
 
 	if (res != 0) {
 		// TODO Throw exception
@@ -65,6 +92,7 @@ static void php_git2_repository_free_object(zend_object *object TSRMLS_DC) {
 
 static zend_function_entry git2_repository_methods[] = {
 	PHP_ME(Repository, open, arginfo_repository_open, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(Repository, init, arginfo_repository_init, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 /*	PHP_ME(Repository, __construct, arginfo___construct, ZEND_ACC_PUBLIC) */
 	{ NULL, NULL, NULL }
 };
