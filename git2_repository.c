@@ -128,20 +128,18 @@ static PHP_METHOD(Repository, init_ext) {
 	}
 }
 
+#define GIT2_REPOSITORY_FETCH() git2_repository_object_t *intern = (git2_repository_object_t*)Z_OBJ_P(getThis()); \
+	if (intern->repo == NULL) { \
+		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Git2\\Repository object in invalid state", 0 TSRMLS_CC); \
+		return; \
+	}
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_head_detached, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
 static PHP_METHOD(Repository, head_detached) {
-	git2_repository_object_t *intern;
 	if (zend_parse_parameters_none() == FAILURE) return;
-
-	intern = (git2_repository_object_t*)Z_OBJ_P(getThis());
-
-	if (intern->repo == NULL) {
-		// shouldn't happen
-		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Git2\\Repository object in invalid state", 0 TSRMLS_CC);
-		return;
-	}
+	GIT2_REPOSITORY_FETCH();
 
 	RETURN_BOOL(git_repository_head_detached(intern->repo));
 }
@@ -150,16 +148,8 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_head_unborn, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
 static PHP_METHOD(Repository, head_unborn) {
-	git2_repository_object_t *intern;
 	if (zend_parse_parameters_none() == FAILURE) return;
-
-	intern = (git2_repository_object_t*)Z_OBJ_P(getThis());
-
-	if (intern->repo == NULL) {
-		// shouldn't happen
-		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Git2\\Repository object in invalid state", 0 TSRMLS_CC);
-		return;
-	}
+	GIT2_REPOSITORY_FETCH();
 
 	RETURN_BOOL(git_repository_head_unborn(intern->repo));
 }
@@ -168,16 +158,8 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_is_empty, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
 static PHP_METHOD(Repository, is_empty) {
-	git2_repository_object_t *intern;
 	if (zend_parse_parameters_none() == FAILURE) return;
-
-	intern = (git2_repository_object_t*)Z_OBJ_P(getThis());
-
-	if (intern->repo == NULL) {
-		// shouldn't happen
-		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Git2\\Repository object in invalid state", 0 TSRMLS_CC);
-		return;
-	}
+	GIT2_REPOSITORY_FETCH();
 
 	RETURN_BOOL(git_repository_is_empty(intern->repo));
 }
@@ -186,16 +168,8 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_path, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
 static PHP_METHOD(Repository, path) {
-	git2_repository_object_t *intern;
 	if (zend_parse_parameters_none() == FAILURE) return;
-
-	intern = (git2_repository_object_t*)Z_OBJ_P(getThis());
-
-	if (intern->repo == NULL) {
-		// shouldn't happen
-		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Git2\\Repository object in invalid state", 0 TSRMLS_CC);
-		return;
-	}
+	GIT2_REPOSITORY_FETCH();
 
 	RETURN_STRING(git_repository_path(intern->repo));
 }
@@ -204,16 +178,8 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_workdir, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
 static PHP_METHOD(Repository, workdir) {
-	git2_repository_object_t *intern;
 	if (zend_parse_parameters_none() == FAILURE) return;
-
-	intern = (git2_repository_object_t*)Z_OBJ_P(getThis());
-
-	if (intern->repo == NULL) {
-		// shouldn't happen
-		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Git2\\Repository object in invalid state", 0 TSRMLS_CC);
-		return;
-	}
+	GIT2_REPOSITORY_FETCH();
 
 	RETURN_STRING(git_repository_workdir(intern->repo));
 }
