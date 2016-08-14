@@ -189,6 +189,14 @@ static PHP_METHOD(Repository, head) {
 	git2_reference_spawn(&return_value, out TSRMLS_CC);
 }
 
+git_repository *git2_repository_fetch_from_zval(zval *zv) {
+	if (Z_TYPE_P(zv) != IS_OBJECT) return NULL;
+	if (Z_OBJCE_P(zv) != php_git2_repository_ce) return NULL;
+
+	git2_repository_object_t *intern = (git2_repository_object_t*)Z_OBJ_P(zv);
+	return intern->repo;
+}
+
 zend_object *php_git2_repository_create_object(zend_class_entry *class_type TSRMLS_DC) {
 	git2_repository_object_t *intern = NULL;
 

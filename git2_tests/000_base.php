@@ -17,5 +17,10 @@ var_dump($test->state());
 
 var_dump($test->head());
 var_dump($test->head()->name());
-var_dump(bin2hex($test->head()->target()));
+
+$last_commit = $test->head()->target();
+$commit = Git2\Commit::lookup_oid($test, $last_commit);
+
+var_dump(bin2hex($last_commit));
+var_dump($commit);
 

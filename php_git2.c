@@ -2,11 +2,13 @@
 
 #include "git2_repository.h"
 #include "git2_reference.h"
+#include "git2_commit.h"
 
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(git2) {
 	git2_repository_init(TSRMLS_CC);
 	git2_reference_init(TSRMLS_CC);
+	git2_commit_init(TSRMLS_CC);
 
 	return SUCCESS;
 }

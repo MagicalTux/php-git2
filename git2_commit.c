@@ -10,12 +10,12 @@ typedef struct _git2_commit_object {
 	git_commit *commit;
 } git2_commit_object_t;
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_commit_lookup, 0, 0, 2)
-	ZEND_ARG_OBJ_INFO(0, repository, "Git2\\Repository", 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_commit_lookup_oid, 0, 0, 2)
+	ZEND_ARG_OBJ_INFO(0, repository, Git2\\Repository, 0)
 	ZEND_ARG_INFO(0, oid)
 ZEND_END_ARG_INFO()
 
-static PHP_METHOD(Commit, lookup) {
+static PHP_METHOD(Commit, lookup_oid) {
 	zval *repo;
 	char *oid;
 	size_t oid_len;
@@ -123,7 +123,7 @@ static void php_git2_commit_free_object(zend_object *object TSRMLS_DC) {
 #define PHP_GIT2_COMMIT_ME_P(_x) PHP_ME(Commit, _x, arginfo_commit_ ## _x, ZEND_ACC_PUBLIC)
 
 static zend_function_entry git2_commit_methods[] = {
-	PHP_ME(Commit, lookup, arginfo_commit_lookup, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(Commit, lookup_oid, arginfo_commit_lookup_oid, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_GIT2_COMMIT_ME_P(id)
 	PHP_GIT2_COMMIT_ME_P(message_encoding)
 	PHP_GIT2_COMMIT_ME_P(message)
