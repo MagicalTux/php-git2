@@ -15,6 +15,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_commit_lookup_oid, 0, 0, 2)
 	ZEND_ARG_INFO(0, oid)
 ZEND_END_ARG_INFO()
 
+// somehow it seems we can't use just "lookup" as method name, it'll become php_lookup
 static PHP_METHOD(Commit, lookup_oid) {
 	zval *repo;
 	char *oid;
@@ -42,6 +43,40 @@ static PHP_METHOD(Commit, lookup_oid) {
 	object_init_ex(return_value, php_git2_commit_ce);
 	intern = (git2_commit_object_t*)Z_OBJ_P(return_value);
 	int res = git_commit_lookup(&intern->commit, git_repo, &id);
+
+	if (res != 0) {
+		// TODO Throw exception
+		RETURN_NULL();
+	}
+}
+
+static PHP_METHOD(Commit, lookup_prefix) {
+	zval *repo;
+	char *oid;
+	size_t oid_len;
+	git_oid id;
+	git_repository *git_repo;
+	git2_commit_object_t *intern;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Os", &repo, git2_reference_class_entry(), &oid, &oid_len) != SUCCESS) {
+		return;
+	}
+
+	git_repo = git2_repository_fetch_from_zval(repo);
+	if (git_repo == NULL) {
+		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Parameter must be a valid git repository", 0 TSRMLS_CC);
+		return;
+	}
+
+	if (oid_len > 20) {
+		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "A git oid must be 20 bytes or less", 0 TSRMLS_CC);
+		return;
+	}
+	memcpy(&id, oid, oid_len);
+
+	object_init_ex(return_value, php_git2_commit_ce);
+	intern = (git2_commit_object_t*)Z_OBJ_P(return_value);
+	int res = git_commit_lookup_prefix(&intern->commit, git_repo, &id, oid_len);
 
 	if (res != 0) {
 		// TODO Throw exception
