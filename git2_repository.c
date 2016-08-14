@@ -6,24 +6,34 @@ static zend_object_handlers php_git2_repository_handler;
 
 typedef struct _git2_repository_object {
 	zend_object std;
-	// TODO
+	git_repository *repo;
 } git2_repository_object_t;
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_open, 0, 0, 1)
 	ZEND_ARG_INFO(0, path)
+	ZEND_ARG_INFO(1, flags)
 ZEND_END_ARG_INFO()
 
 PHP_METHOD(Repository, open) {
 	char *path;
-	int path_len;
+	size_t path_len;
+	zend_long flags = 0;
+	git2_repository_object_t *intern;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "p", &path, &path_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|l", &path, &path_len, &flags) == FAILURE) {
 		RETURN_FALSE;
 	}
 
 	object_init_ex(return_value, php_git2_repository_ce);
 
-//	intern = Z_BINARY_OBJ_P(return_value);
+	intern = (git2_repository_object_t*)Z_OBJ_P(return_value);
+
+	int res = git_repository_open_ext(&intern->repo, path, flags, NULL);
+
+	if (res != 0) {
+		// TODO Throw exception
+		RETURN_FALSE;
+	}
 }
 
 zend_object *php_git2_repository_create_object(zend_class_entry *class_type TSRMLS_DC) {
@@ -43,7 +53,14 @@ zend_object *php_git2_repository_create_object(zend_class_entry *class_type TSRM
 static void php_git2_repository_free_object(zend_object *object TSRMLS_DC) {
 	git2_repository_object_t *intern = (git2_repository_object_t*)object;
 
-	// TODO
+	zend_object_std_dtor(&intern->std TSRMLS_CC);
+
+	if (intern->repo) {
+		git_repository_free(intern->repo);
+		intern->repo = NULL;
+	}
+
+	// no need with PHP7 to free intern
 }
 
 static zend_function_entry git2_repository_methods[] = {
@@ -52,7 +69,7 @@ static zend_function_entry git2_repository_methods[] = {
 	{ NULL, NULL, NULL }
 };
 
-void git2_repository_init() {
+void git2_repository_init(TSRMLS_DC) {
 	zend_class_entry ce;
 
 	INIT_NS_CLASS_ENTRY(ce, "Git2", "Repository", git2_repository_methods);
@@ -62,5 +79,9 @@ void git2_repository_init() {
 	memcpy(&php_git2_repository_handler, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
 	php_git2_repository_handler.clone_obj = NULL;
 	php_git2_repository_handler.free_obj = php_git2_repository_free_object;
+
+	zend_declare_class_constant_long(php_git2_repository_ce, ZEND_STRL("OPEN_NO_SEARCH"), GIT_REPOSITORY_OPEN_NO_SEARCH TSRMLS_CC);
+	zend_declare_class_constant_long(php_git2_repository_ce, ZEND_STRL("OPEN_CROSS_FS"), GIT_REPOSITORY_OPEN_CROSS_FS TSRMLS_CC);
+	zend_declare_class_constant_long(php_git2_repository_ce, ZEND_STRL("OPEN_BARE"), GIT_REPOSITORY_OPEN_BARE TSRMLS_CC);
 }
 

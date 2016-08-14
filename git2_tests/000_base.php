@@ -5,6 +5,6 @@ if (!extension_loaded('git2')) {
 	exit(1);
 }
 
-$test = new Git2\Repository();
+$test = Git2\Repository::open(dirname(__DIR__));
 var_dump($test);
 

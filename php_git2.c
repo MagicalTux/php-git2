@@ -4,7 +4,7 @@
 
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(git2) {
-	git2_repository_init();
+	git2_repository_init(TSRMLS_CC);
 
 	return SUCCESS;
 }
