@@ -29,7 +29,19 @@ typedef struct _git2_reference_object {
 	static PHP_METHOD(Reference, _x) { \
 		if (zend_parse_parameters_none() == FAILURE) return; \
 		GIT2_REFERENCE_FETCH(); \
+		const char *res = git_reference_ ## _x(intern->ref); \
+		if (res == NULL) { RETURN_NULL(); } \
 		RETURN_STRING(git_reference_ ## _x(intern->ref)); \
+	}
+
+#define GIT2_REFERENCE_GET_OID(_x) ZEND_BEGIN_ARG_INFO_EX(arginfo_reference_ ## _x, 0, 0, 0) \
+	ZEND_END_ARG_INFO() \
+	static PHP_METHOD(Reference, _x) { \
+		if (zend_parse_parameters_none() == FAILURE) return; \
+		GIT2_REFERENCE_FETCH(); \
+		const git_oid *res = git_reference_ ## _x(intern->ref); \
+		if (res == NULL) { RETURN_NULL(); } \
+		RETURN_STRINGL((const char*)(res->id), GIT_OID_RAWSZ); \
 	}
 
 GIT2_REFERENCE_GET_STRING(name)
@@ -38,6 +50,9 @@ GIT2_REFERENCE_GET_BOOL(is_remote)
 GIT2_REFERENCE_GET_BOOL(is_tag)
 GIT2_REFERENCE_GET_BOOL(is_note)
 GIT2_REFERENCE_GET_STRING(shorthand)
+GIT2_REFERENCE_GET_STRING(symbolic_target)
+GIT2_REFERENCE_GET_OID(target)
+GIT2_REFERENCE_GET_OID(target_peel)
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_reference_resolve, 0, 0, 0)
 ZEND_END_ARG_INFO()
@@ -97,6 +112,9 @@ static zend_function_entry git2_reference_methods[] = {
 	PHP_ME(Reference, is_note, arginfo_reference_is_note, ZEND_ACC_PUBLIC)
 	PHP_ME(Reference, shorthand, arginfo_reference_shorthand, ZEND_ACC_PUBLIC)
 	PHP_ME(Reference, resolve, arginfo_reference_resolve, ZEND_ACC_PUBLIC)
+	PHP_ME(Reference, target, arginfo_reference_target, ZEND_ACC_PUBLIC)
+	PHP_ME(Reference, target_peel, arginfo_reference_target_peel, ZEND_ACC_PUBLIC)
+	PHP_ME(Reference, symbolic_target, arginfo_reference_symbolic_target, ZEND_ACC_PUBLIC)
 /*	PHP_ME(Reference, __construct, arginfo___construct, ZEND_ACC_PUBLIC) */
 	{ NULL, NULL, NULL }
 };

@@ -17,4 +17,5 @@ var_dump($test->state());
 
 var_dump($test->head());
 var_dump($test->head()->name());
+var_dump(bin2hex($test->head()->target()));
 
