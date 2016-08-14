@@ -12,4 +12,6 @@ var_dump($test->head_unborn());
 var_dump($test->is_empty());
 var_dump($test->path());
 var_dump($test->workdir());
+var_dump($test->is_bare());
+var_dump($test->state());
 

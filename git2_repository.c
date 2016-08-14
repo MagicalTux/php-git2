@@ -134,55 +134,39 @@ static PHP_METHOD(Repository, init_ext) {
 		return; \
 	}
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_head_detached, 0, 0, 0)
-ZEND_END_ARG_INFO()
+#define GIT2_REPOSITORY_GET_BOOL(_x) ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_ ## _x, 0, 0, 0) \
+	ZEND_END_ARG_INFO() \
+	static PHP_METHOD(Repository, _x) { \
+		if (zend_parse_parameters_none() == FAILURE) return; \
+		GIT2_REPOSITORY_FETCH(); \
+		RETURN_BOOL(git_repository_ ## _x(intern->repo)); \
+	}
 
-static PHP_METHOD(Repository, head_detached) {
-	if (zend_parse_parameters_none() == FAILURE) return;
-	GIT2_REPOSITORY_FETCH();
+#define GIT2_REPOSITORY_GET_STRING(_x) ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_ ## _x, 0, 0, 0) \
+	ZEND_END_ARG_INFO() \
+	static PHP_METHOD(Repository, _x) { \
+		if (zend_parse_parameters_none() == FAILURE) return; \
+		GIT2_REPOSITORY_FETCH(); \
+		RETURN_STRING(git_repository_ ## _x(intern->repo)); \
+	}
 
-	RETURN_BOOL(git_repository_head_detached(intern->repo));
-}
+#define GIT2_REPOSITORY_GET_LONG(_x) ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_ ## _x, 0, 0, 0) \
+	ZEND_END_ARG_INFO() \
+	static PHP_METHOD(Repository, _x) { \
+		if (zend_parse_parameters_none() == FAILURE) return; \
+		GIT2_REPOSITORY_FETCH(); \
+		RETURN_LONG(git_repository_ ## _x(intern->repo)); \
+	}
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_head_unborn, 0, 0, 0)
-ZEND_END_ARG_INFO()
-
-static PHP_METHOD(Repository, head_unborn) {
-	if (zend_parse_parameters_none() == FAILURE) return;
-	GIT2_REPOSITORY_FETCH();
-
-	RETURN_BOOL(git_repository_head_unborn(intern->repo));
-}
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_is_empty, 0, 0, 0)
-ZEND_END_ARG_INFO()
-
-static PHP_METHOD(Repository, is_empty) {
-	if (zend_parse_parameters_none() == FAILURE) return;
-	GIT2_REPOSITORY_FETCH();
-
-	RETURN_BOOL(git_repository_is_empty(intern->repo));
-}
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_path, 0, 0, 0)
-ZEND_END_ARG_INFO()
-
-static PHP_METHOD(Repository, path) {
-	if (zend_parse_parameters_none() == FAILURE) return;
-	GIT2_REPOSITORY_FETCH();
-
-	RETURN_STRING(git_repository_path(intern->repo));
-}
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_workdir, 0, 0, 0)
-ZEND_END_ARG_INFO()
-
-static PHP_METHOD(Repository, workdir) {
-	if (zend_parse_parameters_none() == FAILURE) return;
-	GIT2_REPOSITORY_FETCH();
-
-	RETURN_STRING(git_repository_workdir(intern->repo));
-}
+GIT2_REPOSITORY_GET_BOOL(head_detached)
+GIT2_REPOSITORY_GET_BOOL(head_unborn)
+GIT2_REPOSITORY_GET_BOOL(is_empty)
+GIT2_REPOSITORY_GET_STRING(path)
+GIT2_REPOSITORY_GET_STRING(workdir)
+GIT2_REPOSITORY_GET_BOOL(is_bare)
+GIT2_REPOSITORY_GET_LONG(state)
+GIT2_REPOSITORY_GET_STRING(get_namespace)
+GIT2_REPOSITORY_GET_BOOL(is_shallow)
 
 zend_object *php_git2_repository_create_object(zend_class_entry *class_type TSRMLS_DC) {
 	git2_repository_object_t *intern = NULL;
@@ -221,6 +205,10 @@ static zend_function_entry git2_repository_methods[] = {
 	PHP_ME(Repository, is_empty, arginfo_repository_is_empty, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, path, arginfo_repository_path, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, workdir, arginfo_repository_workdir, ZEND_ACC_PUBLIC)
+	PHP_ME(Repository, is_bare, arginfo_repository_is_bare, ZEND_ACC_PUBLIC)
+	PHP_ME(Repository, state, arginfo_repository_state, ZEND_ACC_PUBLIC)
+	PHP_ME(Repository, get_namespace, arginfo_repository_get_namespace, ZEND_ACC_PUBLIC)
+	PHP_ME(Repository, is_shallow, arginfo_repository_is_shallow, ZEND_ACC_PUBLIC)
 /*	PHP_ME(Repository, __construct, arginfo___construct, ZEND_ACC_PUBLIC) */
 	{ NULL, NULL, NULL }
 };
@@ -255,5 +243,17 @@ void git2_repository_init(TSRMLS_DC) {
 	GIT2_REP_CONST(INIT_SHARED_UMASK);
 	GIT2_REP_CONST(INIT_SHARED_GROUP);
 	GIT2_REP_CONST(INIT_SHARED_ALL);
+
+	// state
+	GIT2_REP_CONST(STATE_NONE);
+	GIT2_REP_CONST(STATE_MERGE);
+	GIT2_REP_CONST(STATE_REVERT);
+	GIT2_REP_CONST(STATE_CHERRYPICK);
+	GIT2_REP_CONST(STATE_BISECT);
+	GIT2_REP_CONST(STATE_REBASE);
+	GIT2_REP_CONST(STATE_REBASE_INTERACTIVE);
+	GIT2_REP_CONST(STATE_REBASE_MERGE);
+	GIT2_REP_CONST(STATE_APPLY_MAILBOX);
+	GIT2_REP_CONST(STATE_APPLY_MAILBOX_OR_REBASE);
 }
 
