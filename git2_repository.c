@@ -10,6 +10,10 @@ typedef struct _git2_repository_object {
 	git_repository *repo;
 } git2_repository_object_t;
 
+zend_class_entry *git2_reference_class_entry() {
+	return php_git2_repository_ce;
+}
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_open, 0, 0, 1)
 	ZEND_ARG_INFO(0, path)
 	ZEND_ARG_INFO(0, flags)
