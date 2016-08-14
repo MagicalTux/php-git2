@@ -9,4 +9,6 @@ $test = Git2\Repository::open(dirname(__DIR__));
 var_dump($test);
 var_dump($test->head_detached());
 var_dump($test->head_unborn());
+var_dump($test->is_empty());
+var_dump($test->path());
 

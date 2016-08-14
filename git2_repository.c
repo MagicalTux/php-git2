@@ -164,6 +164,42 @@ static PHP_METHOD(Repository, head_unborn) {
 	RETURN_BOOL(git_repository_head_unborn(intern->repo));
 }
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_is_empty, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Repository, is_empty) {
+	git2_repository_object_t *intern;
+	if (zend_parse_parameters_none() == FAILURE) return;
+
+	intern = (git2_repository_object_t*)Z_OBJ_P(getThis());
+
+	if (intern->repo == NULL) {
+		// shouldn't happen
+		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Git2\\Repository object in invalid state", 0 TSRMLS_CC);
+		return;
+	}
+
+	RETURN_BOOL(git_repository_is_empty(intern->repo));
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_path, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Repository, path) {
+	git2_repository_object_t *intern;
+	if (zend_parse_parameters_none() == FAILURE) return;
+
+	intern = (git2_repository_object_t*)Z_OBJ_P(getThis());
+
+	if (intern->repo == NULL) {
+		// shouldn't happen
+		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Git2\\Repository object in invalid state", 0 TSRMLS_CC);
+		return;
+	}
+
+	RETURN_STRING(git_repository_path(intern->repo));
+}
+
 zend_object *php_git2_repository_create_object(zend_class_entry *class_type TSRMLS_DC) {
 	git2_repository_object_t *intern = NULL;
 
@@ -198,6 +234,8 @@ static zend_function_entry git2_repository_methods[] = {
 	PHP_ME(Repository, init_ext, arginfo_repository_init_ext, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_ME(Repository, head_detached, arginfo_repository_head_detached, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, head_unborn, arginfo_repository_head_unborn, ZEND_ACC_PUBLIC)
+	PHP_ME(Repository, is_empty, arginfo_repository_is_empty, ZEND_ACC_PUBLIC)
+	PHP_ME(Repository, path, arginfo_repository_path, ZEND_ACC_PUBLIC)
 /*	PHP_ME(Repository, __construct, arginfo___construct, ZEND_ACC_PUBLIC) */
 	{ NULL, NULL, NULL }
 };
