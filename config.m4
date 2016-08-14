@@ -15,5 +15,5 @@ if test $PHP_GIT2 != "no"; then
 		PHP_ADD_LIBRARY(git2,, GIT2_SHARED_LIBADD)
 	fi
 
-	PHP_NEW_EXTENSION(git2, php_git2.c git2_repository.c, $ext_shared)
+	PHP_NEW_EXTENSION(git2, php_git2.c git2_repository.c git2_reference.c, $ext_shared)
 fi

@@ -1,5 +1,6 @@
 #include "php_git2.h"
 #include "git2_repository.h"
+#include "git2_reference.h"
 
 static zend_class_entry *php_git2_repository_ce;
 static zend_object_handlers php_git2_repository_handler;
