@@ -14,7 +14,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_open, 0, 0, 1)
 	ZEND_ARG_INFO(0, flags)
 ZEND_END_ARG_INFO()
 
-PHP_METHOD(Repository, open) {
+static PHP_METHOD(Repository, open) {
 	char *path;
 	size_t path_len;
 	zend_long flags = 0;
@@ -36,12 +36,37 @@ PHP_METHOD(Repository, open) {
 	}
 }
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_open_bare, 0, 0, 1)
+	ZEND_ARG_INFO(0, path)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Repository, open_bare) {
+	char *path;
+	size_t path_len;
+	git2_repository_object_t *intern;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &path, &path_len) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	object_init_ex(return_value, php_git2_repository_ce);
+
+	intern = (git2_repository_object_t*)Z_OBJ_P(return_value);
+
+	int res = git_repository_open_bare(&intern->repo, path);
+
+	if (res != 0) {
+		// TODO Throw exception
+		RETURN_FALSE;
+	}
+}
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_init, 0, 0, 1)
 	ZEND_ARG_INFO(0, path)
 	ZEND_ARG_INFO(0, is_bare)
 ZEND_END_ARG_INFO()
 
-PHP_METHOD(Repository, init) {
+static PHP_METHOD(Repository, init) {
 	char *path;
 	size_t path_len;
 	zend_bool is_bare = 0;
@@ -56,6 +81,46 @@ PHP_METHOD(Repository, init) {
 	intern = (git2_repository_object_t*)Z_OBJ_P(return_value);
 
 	int res = git_repository_init(&intern->repo, path, is_bare ? 1 : 0);
+
+	if (res != 0) {
+		// TODO Throw exception
+		RETURN_FALSE;
+	}
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_init_ext, 0, 0, 2)
+	ZEND_ARG_INFO(0, path)
+	ZEND_ARG_INFO(0, opts)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Repository, init_ext) {
+	char *path;
+	size_t path_len;
+	HashTable *opts;
+	zval *data;
+	git2_repository_object_t *intern;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sh", &path, &path_len, &opts) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	git_repository_init_options opts_libgit2 = GIT_REPOSITORY_INIT_OPTIONS_INIT;
+	if ((data = zend_hash_str_find(opts, ZEND_STRL("flags"))) != NULL) {
+		convert_to_long(data); // is it safe to call convert_to_long() here?
+		opts_libgit2.flags = Z_LVAL_P(data);
+	}
+
+	if ((data = zend_hash_str_find(opts, ZEND_STRL("mode"))) != NULL) {
+		convert_to_long(data); // is it safe to call convert_to_long() here?
+		opts_libgit2.mode = Z_LVAL_P(data);
+	}
+	// TODO: workdir_path description template_path initial_head origin_url
+
+	object_init_ex(return_value, php_git2_repository_ce);
+
+	intern = (git2_repository_object_t*)Z_OBJ_P(return_value);
+
+	int res = git_repository_init_ext(&intern->repo, path, &opts_libgit2);
 
 	if (res != 0) {
 		// TODO Throw exception
@@ -92,7 +157,9 @@ static void php_git2_repository_free_object(zend_object *object TSRMLS_DC) {
 
 static zend_function_entry git2_repository_methods[] = {
 	PHP_ME(Repository, open, arginfo_repository_open, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(Repository, open_bare, arginfo_repository_open_bare, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_ME(Repository, init, arginfo_repository_init, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(Repository, init_ext, arginfo_repository_init_ext, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 /*	PHP_ME(Repository, __construct, arginfo___construct, ZEND_ACC_PUBLIC) */
 	{ NULL, NULL, NULL }
 };
@@ -108,8 +175,24 @@ void git2_repository_init(TSRMLS_DC) {
 	php_git2_repository_handler.clone_obj = NULL;
 	php_git2_repository_handler.free_obj = php_git2_repository_free_object;
 
-	zend_declare_class_constant_long(php_git2_repository_ce, ZEND_STRL("OPEN_NO_SEARCH"), GIT_REPOSITORY_OPEN_NO_SEARCH TSRMLS_CC);
-	zend_declare_class_constant_long(php_git2_repository_ce, ZEND_STRL("OPEN_CROSS_FS"), GIT_REPOSITORY_OPEN_CROSS_FS TSRMLS_CC);
-	zend_declare_class_constant_long(php_git2_repository_ce, ZEND_STRL("OPEN_BARE"), GIT_REPOSITORY_OPEN_BARE TSRMLS_CC);
+	// open_ext constants
+#define GIT2_REP_CONST(_x) zend_declare_class_constant_long(php_git2_repository_ce, ZEND_STRL(#_x), GIT_REPOSITORY_ ## _x TSRMLS_CC)
+	GIT2_REP_CONST(OPEN_NO_SEARCH);
+	GIT2_REP_CONST(OPEN_CROSS_FS);
+	GIT2_REP_CONST(OPEN_BARE);
+
+	// init_ext constants
+	GIT2_REP_CONST(INIT_BARE);
+	GIT2_REP_CONST(INIT_NO_REINIT);
+	GIT2_REP_CONST(INIT_NO_DOTGIT_DIR);
+	GIT2_REP_CONST(INIT_MKDIR);
+	GIT2_REP_CONST(INIT_MKPATH);
+	GIT2_REP_CONST(INIT_EXTERNAL_TEMPLATE);
+	GIT2_REP_CONST(INIT_RELATIVE_GITLINK);
+
+	// init_ext mode of operation (actually just a chmod thing)
+	GIT2_REP_CONST(INIT_SHARED_UMASK);
+	GIT2_REP_CONST(INIT_SHARED_GROUP);
+	GIT2_REP_CONST(INIT_SHARED_ALL);
 }
 
