@@ -19,3 +19,6 @@
 /run-tests.php
 *.lo
 *.la
+
+# vi
+.*.swp

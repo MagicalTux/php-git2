@@ -15,3 +15,7 @@ var_dump($test->workdir());
 var_dump($test->is_bare());
 var_dump($test->state());
 
+var_dump($test->head());
+var_dump($test->head()->name());
+var_dump($test->head()->shorthand());
+

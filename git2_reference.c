@@ -39,6 +39,14 @@ GIT2_REFERENCE_GET_BOOL(is_tag)
 GIT2_REFERENCE_GET_BOOL(is_note)
 GIT2_REFERENCE_GET_STRING(shorthand)
 
+void git2_reference_spawn(zval **return_value, git_reference *ref TSRMLS_DC) {
+	git2_reference_object_t *intern;
+
+	object_init_ex(*return_value, php_git2_reference_ce);
+	intern = (git2_reference_object_t*)Z_OBJ_P(*return_value);
+	intern->ref = ref;
+}
+
 zend_object *php_git2_reference_create_object(zend_class_entry *class_type TSRMLS_DC) {
 	git2_reference_object_t *intern = NULL;
 
