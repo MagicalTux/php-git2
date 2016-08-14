@@ -11,4 +11,5 @@ var_dump($test->head_detached());
 var_dump($test->head_unborn());
 var_dump($test->is_empty());
 var_dump($test->path());
+var_dump($test->workdir());
 
