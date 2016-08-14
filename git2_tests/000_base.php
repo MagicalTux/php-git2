@@ -7,4 +7,5 @@ if (!extension_loaded('git2')) {
 
 $test = Git2\Repository::open(dirname(__DIR__));
 var_dump($test);
+var_dump($test->head_detached());
 
