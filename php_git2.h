@@ -14,6 +14,9 @@
 #include <string.h>
 #include "zend_exceptions.h"
 #include "zend_interfaces.h"
+#ifdef ZTS
+#include "TSRM.h"
+#endif
 
 #include "git2.h"
 #include "git2/odb.h"
@@ -25,7 +28,15 @@
 extern zend_module_entry git2_module_entry;
 #define phpext_git2_ptr &git2_module_entry
 
-//PHPAPI zend_class_entry *php_git2_get_repository(void);
+#ifdef PHP_WIN32
+#define PHP_GIT2_API __declspec(dllexport)
+#elif defined(__GNUC__) && __GNUC__ >= 4
+#define PHP_GIT2_API __attribute__ ((visibility("default")))
+#else
+#define PHP_GIT2_API
+#endif
+
+//PHP_GIT2_API zend_class_entry *php_git2_get_repository(void);
 
 
 #endif /* PHP_GIT2_H */
