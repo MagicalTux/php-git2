@@ -39,6 +39,21 @@ GIT2_REFERENCE_GET_BOOL(is_tag)
 GIT2_REFERENCE_GET_BOOL(is_note)
 GIT2_REFERENCE_GET_STRING(shorthand)
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_reference_resolve, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Reference, resolve) {
+	if (zend_parse_parameters_none() == FAILURE) return;
+	GIT2_REFERENCE_FETCH();
+
+	git_reference *out;
+	if (git_reference_resolve(&out, intern->ref) != 0) {
+		RETURN_FALSE;
+	}
+
+	git2_reference_spawn(&return_value, out TSRMLS_CC);
+}
+
 void git2_reference_spawn(zval **return_value, git_reference *ref TSRMLS_DC) {
 	git2_reference_object_t *intern;
 
@@ -81,6 +96,7 @@ static zend_function_entry git2_reference_methods[] = {
 	PHP_ME(Reference, is_tag, arginfo_reference_is_tag, ZEND_ACC_PUBLIC)
 	PHP_ME(Reference, is_note, arginfo_reference_is_note, ZEND_ACC_PUBLIC)
 	PHP_ME(Reference, shorthand, arginfo_reference_shorthand, ZEND_ACC_PUBLIC)
+	PHP_ME(Reference, resolve, arginfo_reference_resolve, ZEND_ACC_PUBLIC)
 /*	PHP_ME(Reference, __construct, arginfo___construct, ZEND_ACC_PUBLIC) */
 	{ NULL, NULL, NULL }
 };
