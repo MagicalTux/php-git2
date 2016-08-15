@@ -181,6 +181,8 @@ static PHP_METHOD(Remote, download) {
 
 	int res = git_remote_download(intern->remote, &git_refspecs, &git_opts);
 
+	php_git2_strarray_free(&git_refspecs);
+
 	if (res == 0) {
 		RETURN_TRUE;
 	}
@@ -211,10 +213,11 @@ static PHP_METHOD(Remote, fetch) {
 
 	php_git2_strarray_free(&git_refspecs);
 
-	if (res == 0) {
-		RETURN_TRUE;
+	if (res != 0) {
+		git2_throw_last_error(TSRMLS_CC);
+		return;
 	}
-	RETURN_FALSE;
+	RETURN_TRUE;
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_upload, 0, 0, 0)
