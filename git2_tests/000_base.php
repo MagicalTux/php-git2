@@ -25,3 +25,9 @@ $commit = $test->head()->peel(Git2::OBJ_COMMIT); // this is actually equivalent 
 var_dump($commit);
 var_dump($commit->message());
 
+$tree = $commit->tree();
+var_dump($tree);
+var_dump(bin2hex($tree->id()));
+var_dump($tree->entrycount());
+
+
