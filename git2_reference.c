@@ -70,6 +70,45 @@ static PHP_METHOD(Reference, resolve) {
 	git2_reference_spawn(&return_value, out TSRMLS_CC);
 }
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_reference_peel, 0, 0, 1)
+	ZEND_ARG_INFO(0, type)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Reference, peel) {
+	long type;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &type) != SUCCESS) {
+		return;
+	}
+	GIT2_REFERENCE_FETCH();
+
+	switch(type) {
+		case GIT_OBJ_COMMIT: case GIT_OBJ_TAG: case GIT_OBJ_TREE: case GIT_OBJ_BLOB: case GIT_OBJ_ANY:
+			break;
+		default:
+			git2_throw_exception(0 TSRMLS_CC, "Invalid type passed");
+			return;
+	}
+
+	git_object *out;
+	int res = git_reference_peel(&out, intern->ref, type);
+
+	if (res != 0) {
+		git2_throw_last_error(TSRMLS_CC);
+		return;
+	}
+
+	// TODO find object type, instanciate
+	switch(git_object_type(out)) {
+		case GIT_OBJ_COMMIT:
+			git2_commit_spawn(return_value, (git_commit*)out TSRMLS_CC);
+			return;
+		default:
+			git2_throw_exception(0 TSRMLS_CC, "Type of object is not implemented");
+			return;
+	}
+}
+
 void git2_reference_spawn(zval **return_value, git_reference *ref TSRMLS_DC) {
 	git2_reference_object_t *intern;
 
@@ -116,6 +155,7 @@ static zend_function_entry git2_reference_methods[] = {
 	PHP_ME(Reference, target, arginfo_reference_target, ZEND_ACC_PUBLIC)
 	PHP_ME(Reference, target_peel, arginfo_reference_target_peel, ZEND_ACC_PUBLIC)
 	PHP_ME(Reference, symbolic_target, arginfo_reference_symbolic_target, ZEND_ACC_PUBLIC)
+	PHP_ME(Reference, peel, arginfo_reference_peel, ZEND_ACC_PUBLIC)
 /*	PHP_ME(Reference, __construct, arginfo___construct, ZEND_ACC_PUBLIC) */
 	{ NULL, NULL, NULL }
 };

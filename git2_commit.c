@@ -128,6 +128,13 @@ GIT2_COMMIT_GET_LONG(time)
 GIT2_COMMIT_GET_LONG(time_offset)
 GIT2_COMMIT_GET_STRING(raw_header)
 
+void git2_commit_spawn(zval **return_value, git_commit *commit TSRMLS_DC) {
+	git2_commit_object_t *intern;
+
+	object_init_ex(*return_value, php_git2_commit_ce);
+	intern = (git2_commit_object_t*)Z_OBJ_P(*return_value);
+	intern->commit = commit;
+}
 
 zend_object *php_git2_commit_create_object(zend_class_entry *class_type TSRMLS_DC) {
 	git2_commit_object_t *intern = NULL;
