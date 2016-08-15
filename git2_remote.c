@@ -58,7 +58,7 @@ static PHP_METHOD(Remote, create_with_fetchspec) {
 	git2_remote_object_t *intern;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Osss", &z_repo, git2_reference_class_entry(), &name, &name_len, &url, &url_len, &fetch, &fetch_len) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	repo = git2_repository_fetch_from_zval(z_repo);
@@ -70,6 +70,38 @@ static PHP_METHOD(Remote, create_with_fetchspec) {
 	object_init_ex(return_value, php_git2_remote_ce);
 	intern = (git2_remote_object_t*)Z_OBJ_P(return_value);
 	int res = git_remote_create_with_fetchspec(&intern->remote, repo, name, url, fetch);
+
+	if (res != 0) {
+		git2_throw_last_error();
+		RETURN_NULL();
+	}
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_lookup_name, 0, 0, 2)
+	ZEND_ARG_OBJ_INFO(0, repository, Git2\\Repository, 0)
+	ZEND_ARG_INFO(0, name)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Remote, lookup_name) {
+	zval *z_repo;
+	git_repository *repo;
+	char *name;
+	size_t name_len;
+	git2_remote_object_t *intern;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Os", &z_repo, git2_reference_class_entry(), &name, &name_len) == FAILURE) {
+		return;
+	}
+
+	repo = git2_repository_fetch_from_zval(z_repo);
+	if (repo == NULL) {
+		git2_throw_exception(0 TSRMLS_CC, "Parameter must be a valid git repository");
+		return;
+	}
+
+	object_init_ex(return_value, php_git2_remote_ce);
+	intern = (git2_remote_object_t*)Z_OBJ_P(return_value);
+	int res = git_remote_lookup(&intern->remote, repo, name);
 
 	if (res != 0) {
 		git2_throw_last_error();
@@ -293,6 +325,7 @@ static void php_git2_remote_free_object(zend_object *object TSRMLS_DC) {
 static zend_function_entry git2_remote_methods[] = {
 	PHP_ME(Remote, create_anonymous, arginfo_remote_create_anonymous, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_ME(Remote, create_with_fetchspec, arginfo_remote_create_with_fetchspec, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(Remote, lookup_name, arginfo_remote_lookup_name, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_GIT2_REMOTE_ME_P(name)
 	PHP_GIT2_REMOTE_ME_P(url)
 	PHP_GIT2_REMOTE_ME_P(pushurl)
