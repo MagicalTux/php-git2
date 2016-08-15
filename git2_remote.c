@@ -130,8 +130,56 @@ static PHP_METHOD(Remote, download) {
 	if (zend_parse_parameters_none() == FAILURE) return;
 	GIT2_REMOTE_FETCH();
 	// TODO add git_fetch_options handling
-	
+
 	int res = git_remote_download(intern->remote, NULL, NULL);
+
+	if (res == 0) {
+		RETURN_TRUE;
+	}
+	RETURN_FALSE;
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_fetch, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Remote, fetch) {
+	if (zend_parse_parameters_none() == FAILURE) return;
+	GIT2_REMOTE_FETCH();
+	// TODO add git_fetch_options handling and reflog_message
+
+	int res = git_remote_fetch(intern->remote, NULL, NULL, NULL);
+
+	if (res == 0) {
+		RETURN_TRUE;
+	}
+	RETURN_FALSE;
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_upload, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Remote, upload) {
+	if (zend_parse_parameters_none() == FAILURE) return;
+	GIT2_REMOTE_FETCH();
+	// TODO add git_push_options handling
+
+	int res = git_remote_upload(intern->remote, NULL, NULL);
+
+	if (res == 0) {
+		RETURN_TRUE;
+	}
+	RETURN_FALSE;
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_push, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Remote, push) {
+	if (zend_parse_parameters_none() == FAILURE) return;
+	GIT2_REMOTE_FETCH();
+	// TODO add git_push_options handling
+
+	int res = git_remote_push(intern->remote, NULL, NULL);
 
 	if (res == 0) {
 		RETURN_TRUE;
@@ -187,6 +235,9 @@ static zend_function_entry git2_remote_methods[] = {
 	PHP_GIT2_REMOTE_ME_P(stop)
 	PHP_GIT2_REMOTE_ME_P(disconnect)
 	PHP_GIT2_REMOTE_ME_P(download)
+	PHP_GIT2_REMOTE_ME_P(fetch)
+	PHP_GIT2_REMOTE_ME_P(upload)
+	PHP_GIT2_REMOTE_ME_P(push)
 /*	PHP_ME(Remote, __construct, arginfo___construct, ZEND_ACC_PUBLIC) */
 	{ NULL, NULL, NULL }
 };
