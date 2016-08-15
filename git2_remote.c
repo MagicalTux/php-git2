@@ -217,6 +217,7 @@ static PHP_METHOD(Remote, fetch) {
 		git2_throw_last_error(TSRMLS_CC);
 		return;
 	}
+
 	RETURN_TRUE;
 }
 

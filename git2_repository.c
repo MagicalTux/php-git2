@@ -37,8 +37,8 @@ static PHP_METHOD(Repository, open) {
 	int res = git_repository_open_ext(&intern->repo, path, flags, NULL);
 
 	if (res != 0) {
-		// TODO Throw exception
-		RETURN_FALSE;
+		git2_throw_last_error(TSRMLS_CC);
+		return;
 	}
 }
 
@@ -62,8 +62,8 @@ static PHP_METHOD(Repository, open_bare) {
 	int res = git_repository_open_bare(&intern->repo, path);
 
 	if (res != 0) {
-		// TODO Throw exception
-		RETURN_FALSE;
+		git2_throw_last_error(TSRMLS_CC);
+		return;
 	}
 }
 
@@ -89,8 +89,8 @@ static PHP_METHOD(Repository, init) {
 	int res = git_repository_init(&intern->repo, path, is_bare ? 1 : 0);
 
 	if (res != 0) {
-		// TODO Throw exception
-		RETURN_FALSE;
+		git2_throw_last_error(TSRMLS_CC);
+		return;
 	}
 }
 
@@ -129,8 +129,8 @@ static PHP_METHOD(Repository, init_ext) {
 	int res = git_repository_init_ext(&intern->repo, path, &opts_libgit2);
 
 	if (res != 0) {
-		// TODO Throw exception
-		RETURN_FALSE;
+		git2_throw_last_error(TSRMLS_CC);
+		return;
 	}
 }
 
@@ -184,7 +184,8 @@ static PHP_METHOD(Repository, config) {
 	git_config *out;
 	int res = git_repository_config(&out, intern->repo);
 	if (res != 0) {
-		RETURN_NULL(); // TODO detect errors
+		git2_throw_last_error(TSRMLS_CC);
+		return;
 	}
 
 	git2_config_spawn(&return_value, out TSRMLS_CC);
