@@ -10,6 +10,8 @@
 
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(git2) {
+	git_libgit2_init();
+
 	git2_exception_init(TSRMLS_CC);
 	git2_repository_init(TSRMLS_CC);
 	git2_config_init(TSRMLS_CC);
@@ -23,6 +25,7 @@ PHP_MINIT_FUNCTION(git2) {
 /* }}} */
 
 PHP_MSHUTDOWN_FUNCTION(git2) {
+	git_libgit2_shutdown();
 	return SUCCESS;
 }
 
