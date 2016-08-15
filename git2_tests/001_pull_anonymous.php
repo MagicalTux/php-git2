@@ -15,7 +15,8 @@ $config->set_string('branch.master.merge', 'refs/heads/master');
 
 echo "Fetching remote...\n";
 $remote = Git2\Remote::create_anonymous($repo, 'https://github.com/MTYoujou/php-git2.git');
-var_dump($remote->connect(false));
+#var_dump($remote->connect(false));
 var_dump($remote->fetch(['+refs/*', 'refs/*']));
-var_dump($repo->checkout_head());
+#var_dump($repo->checkout_head());
+var_dump($repo->head());
 

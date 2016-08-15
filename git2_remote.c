@@ -172,13 +172,14 @@ static PHP_METHOD(Remote, download) {
 
 	GIT2_REMOTE_FETCH();
 	// TODO add git_fetch_options handling
+	git_fetch_options git_opts = GIT_FETCH_OPTIONS_INIT;
 	git_strarray git_refspecs;
 	git_refspecs.count = 0;
 
 	if (refspecs)
 		php_git2_ht_to_strarray(&git_refspecs, refspecs);
 
-	int res = git_remote_download(intern->remote, &git_refspecs, NULL);
+	int res = git_remote_download(intern->remote, &git_refspecs, &git_opts);
 
 	if (res == 0) {
 		RETURN_TRUE;
@@ -199,13 +200,14 @@ static PHP_METHOD(Remote, fetch) {
 
 	GIT2_REMOTE_FETCH();
 	// TODO add git_fetch_options handling and reflog_message
+	git_fetch_options git_opts = GIT_FETCH_OPTIONS_INIT;
 	git_strarray git_refspecs;
 	git_refspecs.count = 0;
 
 	if (refspecs)
 		php_git2_ht_to_strarray(&git_refspecs, refspecs);
 
-	int res = git_remote_fetch(intern->remote, &git_refspecs, NULL, NULL);
+	int res = git_remote_fetch(intern->remote, &git_refspecs, &git_opts, NULL);
 
 	php_git2_strarray_free(&git_refspecs);
 
