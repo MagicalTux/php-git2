@@ -1,5 +1,6 @@
 #include "php_git2.h"
 
+#include "git2_exception.h"
 #include "git2_repository.h"
 #include "git2_config.h"
 #include "git2_config_entry.h"
@@ -9,6 +10,7 @@
 
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(git2) {
+	git2_exception_init(TSRMLS_CC);
 	git2_repository_init(TSRMLS_CC);
 	git2_config_init(TSRMLS_CC);
 	git2_config_entry_init(TSRMLS_CC);
