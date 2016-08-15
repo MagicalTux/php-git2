@@ -166,7 +166,7 @@ ZEND_END_ARG_INFO()
 static PHP_METHOD(Remote, download) {
 	HashTable *refspecs = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "a", &refspecs) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|a", &refspecs) != SUCCESS) {
 		return;
 	}
 
@@ -194,7 +194,7 @@ ZEND_END_ARG_INFO()
 static PHP_METHOD(Remote, fetch) {
 	HashTable *refspecs = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "a", &refspecs) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|a", &refspecs) != SUCCESS) {
 		return;
 	}
 
