@@ -201,10 +201,35 @@ static PHP_METHOD(Repository, head) {
 	git_reference *out;
 	int res = git_repository_head(&out, intern->repo);
 	if (res != 0) {
-		RETURN_NULL(); // TODO detect errors
+		git2_throw_last_error();
+		RETURN_FALSE;
 	}
 
 	git2_reference_spawn(&return_value, out TSRMLS_CC);
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_set_head, 0, 0, 0)
+	ZEND_ARG_INFO(0, refname)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Repository, set_head) {
+	char *refname;
+	size_t refname_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &refname, &refname_len) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	GIT2_REPOSITORY_FETCH();
+
+	int res = git_repository_set_head(intern->repo, refname);
+
+	if (res != 0) {
+		git2_throw_last_error();
+		RETURN_FALSE;
+	}
+
+	RETURN_TRUE;
 }
 
 git_repository *git2_repository_fetch_from_zval(zval *zv) {
@@ -249,6 +274,7 @@ static zend_function_entry git2_repository_methods[] = {
 	PHP_ME(Repository, init_ext, arginfo_repository_init_ext, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_ME(Repository, config, arginfo_repository_config, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, head, arginfo_repository_head, ZEND_ACC_PUBLIC)
+	PHP_ME(Repository, set_head, arginfo_repository_set_head, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, head_detached, arginfo_repository_head_detached, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, head_unborn, arginfo_repository_head_unborn, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, is_empty, arginfo_repository_is_empty, ZEND_ACC_PUBLIC)
