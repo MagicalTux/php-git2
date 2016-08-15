@@ -56,6 +56,14 @@ static PHP_METHOD(Remote, create_anonymous) {
 		RETURN_LONG(git_remote_ ## _x(intern->remote)); \
 	}
 
+#define GIT2_REMOTE_GET_BOOL(_x) ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_ ## _x, 0, 0, 0) \
+	ZEND_END_ARG_INFO() \
+	static PHP_METHOD(Remote, _x) { \
+		if (zend_parse_parameters_none() == FAILURE) return; \
+		GIT2_REMOTE_FETCH(); \
+		RETURN_BOOL(git_remote_ ## _x(intern->remote)); \
+	}
+
 #define GIT2_REMOTE_GET_STRING(_x) ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_ ## _x, 0, 0, 0) \
 	ZEND_END_ARG_INFO() \
 	static PHP_METHOD(Remote, _x) { \
@@ -70,6 +78,7 @@ GIT2_REMOTE_GET_STRING(name)
 GIT2_REMOTE_GET_STRING(url)
 GIT2_REMOTE_GET_STRING(pushurl)
 GIT2_REMOTE_GET_LONG(refspec_count)
+GIT2_REMOTE_GET_BOOL(connected)
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_connect, 0, 0, 1)
 	ZEND_ARG_INFO(0, is_push) /* set to true for push, false for fetch */
@@ -91,6 +100,42 @@ static PHP_METHOD(Remote, connect) {
 		RETURN_TRUE;
 	}
 
+	RETURN_FALSE;
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_stop, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Remote, stop) {
+	if (zend_parse_parameters_none() == FAILURE) return;
+	GIT2_REMOTE_FETCH();
+
+	git_remote_stop(intern->remote);
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_disconnect, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Remote, disconnect) {
+	if (zend_parse_parameters_none() == FAILURE) return;
+	GIT2_REMOTE_FETCH();
+
+	git_remote_disconnect(intern->remote);
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_download, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Remote, download) {
+	if (zend_parse_parameters_none() == FAILURE) return;
+	GIT2_REMOTE_FETCH();
+	// TODO add git_fetch_options handling
+	
+	int res = git_remote_download(intern->remote, NULL, NULL);
+
+	if (res == 0) {
+		RETURN_TRUE;
+	}
 	RETURN_FALSE;
 }
 
@@ -133,11 +178,15 @@ static void php_git2_remote_free_object(zend_object *object TSRMLS_DC) {
 
 static zend_function_entry git2_remote_methods[] = {
 	PHP_ME(Remote, create_anonymous, arginfo_remote_create_anonymous, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
-	PHP_ME(Remote, name, arginfo_remote_name, ZEND_ACC_PUBLIC)
-	PHP_ME(Remote, url, arginfo_remote_url, ZEND_ACC_PUBLIC)
-	PHP_ME(Remote, pushurl, arginfo_remote_pushurl, ZEND_ACC_PUBLIC)
-	PHP_ME(Remote, refspec_count, arginfo_remote_refspec_count, ZEND_ACC_PUBLIC)
+	PHP_GIT2_REMOTE_ME_P(name)
+	PHP_GIT2_REMOTE_ME_P(url)
+	PHP_GIT2_REMOTE_ME_P(pushurl)
+	PHP_GIT2_REMOTE_ME_P(refspec_count)
+	PHP_GIT2_REMOTE_ME_P(connected)
 	PHP_GIT2_REMOTE_ME_P(connect)
+	PHP_GIT2_REMOTE_ME_P(stop)
+	PHP_GIT2_REMOTE_ME_P(disconnect)
+	PHP_GIT2_REMOTE_ME_P(download)
 /*	PHP_ME(Remote, __construct, arginfo___construct, ZEND_ACC_PUBLIC) */
 	{ NULL, NULL, NULL }
 };
