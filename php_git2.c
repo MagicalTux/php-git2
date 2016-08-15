@@ -9,6 +9,9 @@
 #include "git2_remote.h"
 #include "git2_tree.h"
 
+static zend_class_entry *php_git2_base_ce;
+static zend_object_handlers php_git2_base_handler;
+
 void php_git2_ht_to_strarray(git_strarray *out, HashTable *in) {
 	uint32_t count = zend_array_count(in);
 	out->count = count;
@@ -36,6 +39,10 @@ void php_git2_strarray_free(git_strarray *a) {
 	}
 }
 
+static zend_function_entry git2_base_methods[] = {
+	{ NULL, NULL, NULL }
+};
+
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(git2) {
 	// check version
@@ -47,6 +54,22 @@ PHP_MINIT_FUNCTION(git2) {
 	}
 
 	git_libgit2_init();
+
+	zend_class_entry ce;
+
+	INIT_CLASS_ENTRY(ce, "Git2", git2_base_methods);
+	php_git2_base_ce = zend_register_internal_class(&ce TSRMLS_CC);
+	php_git2_base_ce->create_object = NULL;
+
+	memcpy(&php_git2_base_handler, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+	php_git2_base_handler.clone_obj = NULL;
+
+#define GIT2_BASE_CONST(_x) zend_declare_class_constant_long(php_git2_base_ce, ZEND_STRL(#_x), GIT_ ## _x TSRMLS_CC)
+	GIT2_BASE_CONST(OBJ_COMMIT);
+	GIT2_BASE_CONST(OBJ_TAG);
+	GIT2_BASE_CONST(OBJ_TREE);
+	GIT2_BASE_CONST(OBJ_BLOB);
+	GIT2_BASE_CONST(OBJ_ANY);
 
 	git2_exception_init(TSRMLS_CC);
 	git2_repository_init(TSRMLS_CC);

@@ -19,7 +19,9 @@ var_dump($config->export());
 $last_commit = $test->head()->target();
 var_dump(bin2hex($last_commit));
 
-$commit = Git2\Commit::lookup_oid($test, $last_commit);
+//$commit = Git2\Commit::lookup_oid($test, $last_commit);
+$commit = $test->head()->peel(Git2::OBJ_COMMIT); // this is actually equivalent to the previous command
+
 var_dump($commit);
 var_dump($commit->message());
 

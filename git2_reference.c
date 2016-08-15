@@ -1,6 +1,7 @@
 #include "php_git2.h"
 #include "git2_exception.h"
 #include "git2_reference.h"
+#include "git2_commit.h"
 
 static zend_class_entry *php_git2_reference_ce;
 static zend_object_handlers php_git2_reference_handler;
@@ -101,7 +102,7 @@ static PHP_METHOD(Reference, peel) {
 	// TODO find object type, instanciate
 	switch(git_object_type(out)) {
 		case GIT_OBJ_COMMIT:
-			git2_commit_spawn(return_value, (git_commit*)out TSRMLS_CC);
+			git2_commit_spawn(&return_value, (git_commit*)out TSRMLS_CC);
 			return;
 		default:
 			git2_throw_exception(0 TSRMLS_CC, "Type of object is not implemented");
