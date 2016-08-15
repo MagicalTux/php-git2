@@ -5,22 +5,22 @@ if (!extension_loaded('git2')) {
 	exit(1);
 }
 
-$test = Git2\Repository::open(dirname(__DIR__));
-var_dump($test);
-var_dump($test->path());
+$repo = Git2\Repository::open(dirname(__DIR__));
+var_dump($repo);
+var_dump($repo->path());
 
-var_dump($test->head());
-var_dump($test->head()->name());
+var_dump($repo->head());
+var_dump($repo->head()->name());
 
-$config = $test->config();
+$config = $repo->config();
 var_dump($config);
 var_dump($config->export());
 
-$last_commit = $test->head()->target();
+$last_commit = $repo->head()->target();
 var_dump(bin2hex($last_commit));
 
-//$commit = Git2\Commit::lookup_oid($test, $last_commit);
-$commit = $test->head()->peel(Git2::OBJ_COMMIT); // this is actually equivalent to the previous command
+//$commit = Git2\Commit::lookup_oid($repo, $last_commit);
+$commit = $repo->head()->peel(Git2::OBJ_COMMIT); // this is actually equivalent to the previous command
 
 var_dump($commit);
 var_dump($commit->message());
