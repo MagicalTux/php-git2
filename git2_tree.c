@@ -1,5 +1,6 @@
 #include "php_git2.h"
 #include "git2_exception.h"
+#include "git2_repository.h"
 #include "git2_tree.h"
 
 static zend_class_entry *php_git2_tree_ce;
@@ -9,6 +10,46 @@ typedef struct _git2_tree_object {
 	zend_object std;
 	git_tree *tree;
 } git2_tree_object_t;
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_tree_lookup_oid, 0, 0, 2)
+	ZEND_ARG_OBJ_INFO(0, repository, Git2\\Repository, 0)
+	ZEND_ARG_INFO(0, oid)
+ZEND_END_ARG_INFO()
+
+// somehow it seems we can't use just "lookup" as method name, it'll become php_lookup
+static PHP_METHOD(Tree, lookup_oid) {
+	zval *repo;
+	char *oid;
+	size_t oid_len;
+	git_oid id;
+	git_repository *git_repo;
+	git2_tree_object_t *intern;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Os", &repo, git2_reference_class_entry(), &oid, &oid_len) != SUCCESS) {
+		return;
+	}
+
+	git_repo = git2_repository_fetch_from_zval(repo);
+	if (git_repo == NULL) {
+		git2_throw_exception(0 TSRMLS_CC, "Parameter must be a valid git repository");
+		return;
+	}
+
+	if (oid_len != 20) {
+		git2_throw_exception(0 TSRMLS_CC, "A git oid must be exactly 20 bytes");
+		return;
+	}
+	memcpy(&id, oid, oid_len);
+
+	object_init_ex(return_value, php_git2_tree_ce);
+	intern = (git2_tree_object_t*)Z_OBJ_P(return_value);
+	int res = git_tree_lookup(&intern->tree, git_repo, &id);
+
+	if (res != 0) {
+		// TODO Throw exception
+		RETURN_NULL();
+	}
+}
 
 
 #define GIT2_TREE_FETCH() git2_tree_object_t *intern = (git2_tree_object_t*)Z_OBJ_P(getThis()); \
@@ -74,6 +115,7 @@ static void php_git2_tree_free_object(zend_object *object TSRMLS_DC) {
 }
 
 static zend_function_entry git2_tree_methods[] = {
+	PHP_ME(Tree, lookup_oid, arginfo_tree_id, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_ME(Tree, id, arginfo_tree_id, ZEND_ACC_PUBLIC)
 	PHP_ME(Tree, entrycount, arginfo_tree_entrycount, ZEND_ACC_PUBLIC)
 /*	PHP_ME(Tree, __construct, arginfo___construct, ZEND_ACC_PUBLIC) */
