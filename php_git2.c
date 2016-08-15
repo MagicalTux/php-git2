@@ -37,6 +37,14 @@ void php_git2_strarray_free(git_strarray *a) {
 
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(git2) {
+	// check version
+	int git2_major, git2_minor, git2_rev;
+	git_libgit2_version(&git2_major, &git2_minor, &git2_rev);
+	if ((git2_major != LIBGIT2_VER_MAJOR) || (git2_minor != LIBGIT2_VER_MINOR) || (git2_rev != LIBGIT2_VER_REVISION)) {
+		zend_error(E_WARNING, "Compiled libgit2 and linked libgit2 do not match");
+		return FAILURE;
+	}
+
 	git_libgit2_init();
 
 	git2_exception_init(TSRMLS_CC);
