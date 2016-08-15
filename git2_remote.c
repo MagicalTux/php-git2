@@ -12,7 +12,7 @@ typedef struct _git2_remote_object {
 } git2_remote_object_t;
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_create_anonymous, 0, 0, 2)
-	ZEND_ARG_INFO(0, repository)
+	ZEND_ARG_OBJ_INFO(0, repository, Git2\\Repository, 0)
 	ZEND_ARG_INFO(0, url)
 ZEND_END_ARG_INFO()
 
@@ -36,6 +36,40 @@ static PHP_METHOD(Remote, create_anonymous) {
 	object_init_ex(return_value, php_git2_remote_ce);
 	intern = (git2_remote_object_t*)Z_OBJ_P(return_value);
 	int res = git_remote_create_anonymous(&intern->remote, repo, url);
+
+	if (res != 0) {
+		git2_throw_last_error();
+		RETURN_NULL();
+	}
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_create_with_fetchspec, 0, 0, 4)
+	ZEND_ARG_OBJ_INFO(0, repository, Git2\\Repository, 0)
+	ZEND_ARG_INFO(0, name)
+	ZEND_ARG_INFO(0, url)
+	ZEND_ARG_INFO(0, fetch)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Remote, create_with_fetchspec) {
+	zval *z_repo;
+	git_repository *repo;
+	char *name, *url, *fetch;
+	size_t name_len, url_len, fetch_len;
+	git2_remote_object_t *intern;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Osss", &z_repo, git2_reference_class_entry(), &name, &name_len, &url, &url_len, &fetch, &fetch_len) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	repo = git2_repository_fetch_from_zval(z_repo);
+	if (repo == NULL) {
+		git2_throw_exception(0 TSRMLS_CC, "Parameter must be a valid git repository");
+		return;
+	}
+
+	object_init_ex(return_value, php_git2_remote_ce);
+	intern = (git2_remote_object_t*)Z_OBJ_P(return_value);
+	int res = git_remote_create_with_fetchspec(&intern->remote, repo, name, url, fetch);
 
 	if (res != 0) {
 		git2_throw_last_error();
@@ -126,14 +160,25 @@ static PHP_METHOD(Remote, disconnect) {
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_download, 0, 0, 0)
+	ZEND_ARG_INFO(0, refspecs)
 ZEND_END_ARG_INFO()
 
 static PHP_METHOD(Remote, download) {
-	if (zend_parse_parameters_none() == FAILURE) return;
+	HashTable *refspecs = NULL;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "a", &refspecs) != SUCCESS) {
+		return;
+	}
+
 	GIT2_REMOTE_FETCH();
 	// TODO add git_fetch_options handling
+	git_strarray git_refspecs;
+	git_refspecs.count = 0;
 
-	int res = git_remote_download(intern->remote, NULL, NULL);
+	if (refspecs)
+		php_git2_ht_to_strarray(&git_refspecs, refspecs);
+
+	int res = git_remote_download(intern->remote, &git_refspecs, NULL);
 
 	if (res == 0) {
 		RETURN_TRUE;
@@ -142,14 +187,27 @@ static PHP_METHOD(Remote, download) {
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_fetch, 0, 0, 0)
+	ZEND_ARG_INFO(0, refspecs)
 ZEND_END_ARG_INFO()
 
 static PHP_METHOD(Remote, fetch) {
-	if (zend_parse_parameters_none() == FAILURE) return;
+	HashTable *refspecs = NULL;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "a", &refspecs) != SUCCESS) {
+		return;
+	}
+
 	GIT2_REMOTE_FETCH();
 	// TODO add git_fetch_options handling and reflog_message
+	git_strarray git_refspecs;
+	git_refspecs.count = 0;
 
-	int res = git_remote_fetch(intern->remote, NULL, NULL, NULL);
+	if (refspecs)
+		php_git2_ht_to_strarray(&git_refspecs, refspecs);
+
+	int res = git_remote_fetch(intern->remote, &git_refspecs, NULL, NULL);
+
+	php_git2_strarray_free(&git_refspecs);
 
 	if (res == 0) {
 		RETURN_TRUE;
@@ -228,6 +286,7 @@ static void php_git2_remote_free_object(zend_object *object TSRMLS_DC) {
 
 static zend_function_entry git2_remote_methods[] = {
 	PHP_ME(Remote, create_anonymous, arginfo_remote_create_anonymous, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(Remote, create_with_fetchspec, arginfo_remote_create_with_fetchspec, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_GIT2_REMOTE_ME_P(name)
 	PHP_GIT2_REMOTE_ME_P(url)
 	PHP_GIT2_REMOTE_ME_P(pushurl)

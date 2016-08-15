@@ -63,6 +63,31 @@ static PHP_METHOD(Config, export) {
 	git_config_iterator_free(it);
 }
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_config_set_string, 0, 0, 2)
+	ZEND_ARG_INFO(0, name)
+	ZEND_ARG_INFO(0, value)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Config, set_string) {
+	char *name, *value;
+	size_t *name_len, *value_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &name, &name_len, &value, &value_len) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	GIT2_CONFIG_FETCH();
+
+	int res = git_config_set_string(intern->config, name, value);
+
+	if (res != 0) {
+		git2_throw_last_error();
+		return;
+	}
+
+	RETURN_TRUE;
+}
+
 void git2_config_spawn(zval **return_value, git_config *config TSRMLS_DC) {
 	git2_config_object_t *intern;
 
@@ -101,6 +126,7 @@ static void php_git2_config_free_object(zend_object *object TSRMLS_DC) {
 static zend_function_entry git2_config_methods[] = {
 	PHP_ME(Config, get_entry, arginfo_config_get_entry, ZEND_ACC_PUBLIC)
 	PHP_ME(Config, export, arginfo_config_export, ZEND_ACC_PUBLIC)
+	PHP_ME(Config, set_string, arginfo_config_set_string, ZEND_ACC_PUBLIC)
 /*	PHP_ME(Config, __construct, arginfo___construct, ZEND_ACC_PUBLIC) */
 	{ NULL, NULL, NULL }
 };

@@ -208,7 +208,7 @@ static PHP_METHOD(Repository, head) {
 	git2_reference_spawn(&return_value, out TSRMLS_CC);
 }
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_set_head, 0, 0, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_set_head, 0, 0, 1)
 	ZEND_ARG_INFO(0, refname)
 ZEND_END_ARG_INFO()
 
@@ -223,6 +223,31 @@ static PHP_METHOD(Repository, set_head) {
 	GIT2_REPOSITORY_FETCH();
 
 	int res = git_repository_set_head(intern->repo, refname);
+
+	if (res != 0) {
+		git2_throw_last_error();
+		RETURN_FALSE;
+	}
+
+	RETURN_TRUE;
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_checkout_head, 0, 0, 0)
+	ZEND_ARG_INFO(0, opts)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Repository, checkout_head) {
+	HashTable *opts = NULL;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|H", &opts) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	GIT2_REPOSITORY_FETCH();
+
+	// TODO handle opts
+
+	int res = git_checkout_head(intern->repo, NULL);
 
 	if (res != 0) {
 		git2_throw_last_error();
@@ -275,6 +300,7 @@ static zend_function_entry git2_repository_methods[] = {
 	PHP_ME(Repository, config, arginfo_repository_config, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, head, arginfo_repository_head, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, set_head, arginfo_repository_set_head, ZEND_ACC_PUBLIC)
+	PHP_ME(Repository, checkout_head, arginfo_repository_checkout_head, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, head_detached, arginfo_repository_head_detached, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, head_unborn, arginfo_repository_head_unborn, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, is_empty, arginfo_repository_is_empty, ZEND_ACC_PUBLIC)
@@ -284,6 +310,7 @@ static zend_function_entry git2_repository_methods[] = {
 	PHP_ME(Repository, state, arginfo_repository_state, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, get_namespace, arginfo_repository_get_namespace, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, is_shallow, arginfo_repository_is_shallow, ZEND_ACC_PUBLIC)
+
 /*	PHP_ME(Repository, __construct, arginfo___construct, ZEND_ACC_PUBLIC) */
 	{ NULL, NULL, NULL }
 };

@@ -36,6 +36,8 @@ extern zend_module_entry git2_module_entry;
 #define PHP_GIT2_API
 #endif
 
+void php_git2_ht_to_strarray(git_strarray *out, HashTable *in);
+void php_git2_strarray_free(git_strarray *a);
 //PHP_GIT2_API zend_class_entry *php_git2_get_repository(void);
 
 
