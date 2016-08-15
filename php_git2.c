@@ -7,6 +7,7 @@
 #include "git2_reference.h"
 #include "git2_commit.h"
 #include "git2_remote.h"
+#include "git2_tree.h"
 
 void php_git2_ht_to_strarray(git_strarray *out, HashTable *in) {
 	uint32_t count = zend_array_count(in);
@@ -54,6 +55,7 @@ PHP_MINIT_FUNCTION(git2) {
 	git2_reference_init(TSRMLS_CC);
 	git2_commit_init(TSRMLS_CC);
 	git2_remote_init(TSRMLS_CC);
+	git2_tree_init(TSRMLS_CC);
 
 	return SUCCESS;
 }

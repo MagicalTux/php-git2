@@ -153,7 +153,9 @@ static PHP_METHOD(Repository, init_ext) {
 	static PHP_METHOD(Repository, _x) { \
 		if (zend_parse_parameters_none() == FAILURE) return; \
 		GIT2_REPOSITORY_FETCH(); \
-		RETURN_STRING(git_repository_ ## _x(intern->repo)); \
+		const char *res = git_repository_ ## _x(intern->repo); \
+		if (res == NULL) { RETURN_NULL(); } \
+		RETURN_STRING(res); \
 	}
 
 #define GIT2_REPOSITORY_GET_LONG(_x) ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_ ## _x, 0, 0, 0) \

@@ -2,6 +2,7 @@
 #include "git2_exception.h"
 #include "git2_commit.h"
 #include "git2_repository.h"
+#include "git2_tree.h"
 
 static zend_class_entry *php_git2_commit_ce;
 static zend_object_handlers php_git2_commit_handler;
@@ -50,6 +51,11 @@ static PHP_METHOD(Commit, lookup_oid) {
 		RETURN_NULL();
 	}
 }
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_commit_lookup_prefix, 0, 0, 2)
+	ZEND_ARG_OBJ_INFO(0, repository, Git2\\Repository, 0)
+	ZEND_ARG_INFO(0, oid_prefix)
+ZEND_END_ARG_INFO()
 
 static PHP_METHOD(Commit, lookup_prefix) {
 	zval *repo;
@@ -128,6 +134,24 @@ GIT2_COMMIT_GET_LONG(time)
 GIT2_COMMIT_GET_LONG(time_offset)
 GIT2_COMMIT_GET_STRING(raw_header)
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_commit_tree, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Commit, tree) {
+	if (zend_parse_parameters_none() == FAILURE) return;
+	GIT2_COMMIT_FETCH();
+
+	git_tree *out;
+	int res = git_commit_tree(&out, intern->commit);
+
+	if (res != 0) {
+		git2_throw_last_error(TSRMLS_CC);
+		return;
+	}
+
+	git2_tree_spawn(&return_value, out);
+}
+
 void git2_commit_spawn(zval **return_value, git_commit *commit TSRMLS_DC) {
 	git2_commit_object_t *intern;
 
@@ -167,6 +191,7 @@ static void php_git2_commit_free_object(zend_object *object TSRMLS_DC) {
 
 static zend_function_entry git2_commit_methods[] = {
 	PHP_ME(Commit, lookup_oid, arginfo_commit_lookup_oid, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(Commit, lookup_prefix, arginfo_commit_lookup_prefix, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_GIT2_COMMIT_ME_P(id)
 	PHP_GIT2_COMMIT_ME_P(message_encoding)
 	PHP_GIT2_COMMIT_ME_P(message)
@@ -175,6 +200,7 @@ static zend_function_entry git2_commit_methods[] = {
 	PHP_GIT2_COMMIT_ME_P(time)
 	PHP_GIT2_COMMIT_ME_P(time_offset)
 	PHP_GIT2_COMMIT_ME_P(raw_header)
+	PHP_GIT2_COMMIT_ME_P(tree)
 /*	PHP_ME(Commit, __construct, arginfo___construct, ZEND_ACC_PUBLIC) */
 	{ NULL, NULL, NULL }
 };
