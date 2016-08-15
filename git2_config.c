@@ -1,4 +1,5 @@
 #include "php_git2.h"
+#include "git2_exception.h"
 #include "git2_config.h"
 #include "git2_config_entry.h"
 
@@ -12,7 +13,7 @@ typedef struct _git2_config_object {
 
 #define GIT2_CONFIG_FETCH() git2_config_object_t *intern = (git2_config_object_t*)Z_OBJ_P(getThis()); \
 	if (intern->config == NULL) { \
-		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Git2\\Config object in invalid state", 0 TSRMLS_CC); \
+		git2_throw_exception(0 TSRMLS_CC, "Git2\\Config object in invalid state"); \
 		return; \
 	}
 

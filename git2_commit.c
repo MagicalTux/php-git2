@@ -1,4 +1,5 @@
 #include "php_git2.h"
+#include "git2_exception.h"
 #include "git2_commit.h"
 #include "git2_repository.h"
 
@@ -30,12 +31,12 @@ static PHP_METHOD(Commit, lookup_oid) {
 
 	git_repo = git2_repository_fetch_from_zval(repo);
 	if (git_repo == NULL) {
-		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Parameter must be a valid git repository", 0 TSRMLS_CC);
+		git2_throw_exception(0 TSRMLS_CC, "Parameter must be a valid git repository");
 		return;
 	}
 
 	if (oid_len != 20) {
-		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "A git oid must be exactly 20 bytes", 0 TSRMLS_CC);
+		git2_throw_exception(0 TSRMLS_CC, "A git oid must be exactly 20 bytes");
 		return;
 	}
 	memcpy(&id, oid, oid_len);
@@ -64,12 +65,12 @@ static PHP_METHOD(Commit, lookup_prefix) {
 
 	git_repo = git2_repository_fetch_from_zval(repo);
 	if (git_repo == NULL) {
-		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Parameter must be a valid git repository", 0 TSRMLS_CC);
+		git2_throw_exception(0 TSRMLS_CC, "Parameter must be a valid git repository");
 		return;
 	}
 
 	if (oid_len > 20) {
-		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "A git oid must be 20 bytes or less", 0 TSRMLS_CC);
+		git2_throw_exception(0 TSRMLS_CC, "A git oid must be 20 bytes or less");
 		return;
 	}
 	memcpy(&id, oid, oid_len);
@@ -86,7 +87,7 @@ static PHP_METHOD(Commit, lookup_prefix) {
 
 #define GIT2_COMMIT_FETCH() git2_commit_object_t *intern = (git2_commit_object_t*)Z_OBJ_P(getThis()); \
 	if (intern->commit == NULL) { \
-		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Git2\\Commit object in invalid state", 0 TSRMLS_CC); \
+		git2_throw_exception(0 TSRMLS_CC, "Git2\\Commit object in invalid state"); \
 		return; \
 	}
 

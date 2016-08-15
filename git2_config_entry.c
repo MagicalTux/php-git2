@@ -12,7 +12,7 @@ typedef struct _git2_config_entry_object {
 
 #define GIT2_CONFIG_ENTRY_FETCH() git2_config_entry_object_t *intern = (git2_config_entry_object_t*)Z_OBJ_P(getThis()); \
 	if (intern->e == NULL) { \
-		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Git2\\Entry object in invalid state", 0 TSRMLS_CC); \
+		git2_throw_exception(0 TSRMLS_CC, "Git2\\Config\\Entry object in invalid state"); \
 		return; \
 	}
 

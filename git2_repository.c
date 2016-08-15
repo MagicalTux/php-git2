@@ -136,7 +136,7 @@ static PHP_METHOD(Repository, init_ext) {
 
 #define GIT2_REPOSITORY_FETCH() git2_repository_object_t *intern = (git2_repository_object_t*)Z_OBJ_P(getThis()); \
 	if (intern->repo == NULL) { \
-		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Git2\\Repository object in invalid state", 0 TSRMLS_CC); \
+		git2_throw_exception(0 TSRMLS_CC, "Git2\\Repository object in invalid state"); \
 		return; \
 	}
 

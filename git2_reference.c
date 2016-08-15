@@ -1,4 +1,5 @@
 #include "php_git2.h"
+#include "git2_exception.h"
 #include "git2_reference.h"
 
 static zend_class_entry *php_git2_reference_ce;
@@ -12,7 +13,7 @@ typedef struct _git2_reference_object {
 
 #define GIT2_REFERENCE_FETCH() git2_reference_object_t *intern = (git2_reference_object_t*)Z_OBJ_P(getThis()); \
 	if (intern->ref == NULL) { \
-		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Git2\\Reference object in invalid state", 0 TSRMLS_CC); \
+		git2_throw_exception(0 TSRMLS_CC, "Git2\\Reference object in invalid state"); \
 		return; \
 	}
 

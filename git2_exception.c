@@ -4,6 +4,15 @@
 
 zend_class_entry *php_git2_exception_ce;
 
+zend_bool git2_throw_last_error(TSRMLS_DC) {
+	// throw an exception for last git error
+	const git_error *e = giterr_last();
+	if (e == NULL) return FAILURE;
+
+	git2_throw_exception(e->klass TSRMLS_CC, "Exception from libgit2: %s", e->message);
+	return SUCCESS;
+}
+
 void git2_throw_exception(zend_long code TSRMLS_DC, const char *format, ...) {
 	va_list args;
 	char *message;

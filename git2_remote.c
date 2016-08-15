@@ -1,4 +1,5 @@
 #include "php_git2.h"
+#include "git2_exception.h"
 #include "git2_remote.h"
 #include "git2_repository.h"
 
@@ -28,7 +29,7 @@ static PHP_METHOD(Remote, create_anonymous) {
 
 	repo = git2_repository_fetch_from_zval(z_repo);
 	if (repo == NULL) {
-		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Parameter must be a valid git repository", 0 TSRMLS_CC);
+		git2_throw_exception(0 TSRMLS_CC, "Parameter must be a valid git repository");
 		return;
 	}
 
@@ -37,14 +38,14 @@ static PHP_METHOD(Remote, create_anonymous) {
 	int res = git_remote_create_anonymous(&intern->remote, repo, url);
 
 	if (res != 0) {
-		// TODO Throw exception
+		git2_throw_last_error();
 		RETURN_NULL();
 	}
 }
 
 #define GIT2_REMOTE_FETCH() git2_remote_object_t *intern = (git2_remote_object_t*)Z_OBJ_P(getThis()); \
 	if (intern->remote == NULL) { \
-		zend_throw_exception(zend_exception_get_default(TSRMLS_C), "Git2\\Remote object in invalid state", 0 TSRMLS_CC); \
+		git2_throw_exception(0 TSRMLS_CC, "Git2\\Remote object in invalid state"); \
 		return; \
 	}
 
@@ -100,6 +101,7 @@ static PHP_METHOD(Remote, connect) {
 		RETURN_TRUE;
 	}
 
+	git2_throw_last_error();
 	RETURN_FALSE;
 }
 
