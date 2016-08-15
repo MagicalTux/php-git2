@@ -15,7 +15,7 @@ if test $PHP_GIT2 != "no"; then
 			exit 1
 		fi
 		CFLAGS="$CFLAGS -Wl,libgit2/build/libgit2.a"
-		PHP_ADD_INCLUDE([$ext_srcdir/libgit2/include])
+		PHP_ADD_INCLUDE([libgit2/include])
 		PHP_SUBST([CFLAGS])
 		PHP_ADD_LIBRARY(ssh2,, GIT2_SHARED_LIBADD)
 		PHP_ADD_LIBRARY(curl,, GIT2_SHARED_LIBADD)
