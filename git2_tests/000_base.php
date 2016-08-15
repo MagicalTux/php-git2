@@ -12,6 +12,10 @@ var_dump($test->path());
 var_dump($test->head());
 var_dump($test->head()->name());
 
+$config = $test->config();
+var_dump($config);
+var_dump($config->export());
+
 $last_commit = $test->head()->target();
 var_dump(bin2hex($last_commit));
 

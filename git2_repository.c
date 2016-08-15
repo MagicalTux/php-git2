@@ -1,5 +1,6 @@
 #include "php_git2.h"
 #include "git2_repository.h"
+#include "git2_config.h"
 #include "git2_reference.h"
 
 static zend_class_entry *php_git2_repository_ce;
@@ -173,6 +174,23 @@ GIT2_REPOSITORY_GET_LONG(state)
 GIT2_REPOSITORY_GET_STRING(get_namespace)
 GIT2_REPOSITORY_GET_BOOL(is_shallow)
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_config, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Repository, config) {
+	if (zend_parse_parameters_none() == FAILURE) return;
+	GIT2_REPOSITORY_FETCH();
+
+	git_config *out;
+	int res = git_repository_config(&out, intern->repo);
+	if (res != 0) {
+		RETURN_NULL(); // TODO detect errors
+	}
+
+	git2_config_spawn(&return_value, out TSRMLS_CC);
+}
+
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_head, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
@@ -183,7 +201,7 @@ static PHP_METHOD(Repository, head) {
 	git_reference *out;
 	int res = git_repository_head(&out, intern->repo);
 	if (res != 0) {
-		RETURN_FALSE; // TODO detect errors
+		RETURN_NULL(); // TODO detect errors
 	}
 
 	git2_reference_spawn(&return_value, out TSRMLS_CC);
@@ -229,6 +247,7 @@ static zend_function_entry git2_repository_methods[] = {
 	PHP_ME(Repository, open_bare, arginfo_repository_open_bare, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_ME(Repository, init, arginfo_repository_init, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_ME(Repository, init_ext, arginfo_repository_init_ext, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(Repository, config, arginfo_repository_config, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, head, arginfo_repository_head, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, head_detached, arginfo_repository_head_detached, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, head_unborn, arginfo_repository_head_unborn, ZEND_ACC_PUBLIC)
