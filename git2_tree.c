@@ -95,10 +95,15 @@ static int git2_treewalk_cb(const char *root, const git_tree_entry *entry, void 
 
 	ZVAL_STRING(&argv[0], root);
 	git2_tree_entry_spawn_ephemeral(&argv[1], entry);
-	ZVAL_COPY_VALUE(&argv[2], p->callback_data);
+
+	if (p->callback_data) {
+		ZVAL_COPY_VALUE(&argv[2], p->callback_data);
+		p->callback_i.param_count = 3;
+	} else {
+		p->callback_i.param_count = 2;
+	}
 
 	p->callback_i.retval = &retval;
-	p->callback_i.param_count = 3;
 	p->callback_i.params = argv;
 
 	error = zend_call_function(&p->callback_i, &p->callback_ic);
@@ -128,10 +133,12 @@ static PHP_METHOD(Tree, walk) {
 	long mode;
 	struct git2_treewalk_payload p;
 	p.this = getThis();
+	p.callback_data = NULL;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lf|z", &mode, &p.callback_i, &p.callback_ic, &p.callback_data) != SUCCESS) {
 		return;
 	}
+
 
 	GIT2_TREE_FETCH();
 
