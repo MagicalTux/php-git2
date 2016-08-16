@@ -30,4 +30,15 @@ var_dump($tree);
 var_dump(bin2hex($tree->id()));
 var_dump($tree->entrycount());
 
+$cb = function($root, $entry, &$data) {
+	echo "$root => ".$entry->name()." ($data)\n";
+	$data .= 'o';
+	return 0;
+};
+$test = 'hello';
+
+$tree->walk(Git2\Tree::WALK_POST, $cb, $test);
+
+var_dump($test);
+
 

@@ -8,6 +8,7 @@
 #include "git2_commit.h"
 #include "git2_remote.h"
 #include "git2_tree.h"
+#include "git2_tree_entry.h"
 
 static zend_class_entry *php_git2_base_ce;
 static zend_object_handlers php_git2_base_handler;
@@ -71,14 +72,15 @@ PHP_MINIT_FUNCTION(git2) {
 	GIT2_BASE_CONST(OBJ_BLOB);
 	GIT2_BASE_CONST(OBJ_ANY);
 
-	git2_exception_init(TSRMLS_CC);
-	git2_repository_init(TSRMLS_CC);
-	git2_config_init(TSRMLS_CC);
-	git2_config_entry_init(TSRMLS_CC);
-	git2_reference_init(TSRMLS_CC);
-	git2_commit_init(TSRMLS_CC);
-	git2_remote_init(TSRMLS_CC);
-	git2_tree_init(TSRMLS_CC);
+	git2_exception_init(TSRMLS_C);
+	git2_repository_init(TSRMLS_C);
+	git2_config_init(TSRMLS_C);
+	git2_config_entry_init(TSRMLS_C);
+	git2_reference_init(TSRMLS_C);
+	git2_commit_init(TSRMLS_C);
+	git2_remote_init(TSRMLS_C);
+	git2_tree_init(TSRMLS_C);
+	git2_tree_entry_init(TSRMLS_C);
 
 	return SUCCESS;
 }

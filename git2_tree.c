@@ -82,7 +82,7 @@ GIT2_TREE_GET_LONG(entrycount)
 
 struct git2_treewalk_payload {
 	zval *this;
-	zval **callback_data;
+	zval *callback_data;
 	zend_fcall_info callback_i;
 	zend_fcall_info_cache callback_ic;
 };
@@ -94,14 +94,13 @@ static int git2_treewalk_cb(const char *root, const git_tree_entry *entry, void 
 	struct git2_treewalk_payload *p = payload;
 
 	ZVAL_STRING(&argv[0], root);
-	git2_tree_entry_spawn(&argv[1], entry);
-	ZVAL_COPY_VALUE(&argv[2], *p->callback_data);
+	git2_tree_entry_spawn_ephemeral(&argv[1], entry);
+	ZVAL_COPY_VALUE(&argv[2], p->callback_data);
 
 	p->callback_i.retval = &retval;
 	p->callback_i.param_count = 3;
 	p->callback_i.params = argv;
 
-	// TODO HERE
 	error = zend_call_function(&p->callback_i, &p->callback_ic);
 	if (error == FAILURE) {
 		return -1; // causes end of walk
@@ -109,11 +108,14 @@ static int git2_treewalk_cb(const char *root, const git_tree_entry *entry, void 
 		convert_to_long(&retval);
 		error = Z_LVAL(retval);
 		zval_ptr_dtor(&retval);
+	} else {
+		error = 0;
 	}
 
 	zval_ptr_dtor(&argv[0]);
-	zval_ptr_dtor(&argv[1]);
-	zval_ptr_dtor(&argv[2]); // ?
+//	zval_ptr_dtor(&argv[1]);
+//	zval_ptr_dtor(&argv[2]); // ?
+	return error;
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_tree_walk, 0, 0, 2)
@@ -124,11 +126,10 @@ ZEND_END_ARG_INFO()
 
 static PHP_METHOD(Tree, walk) {
 	long mode;
-	zval **callback_data;
 	struct git2_treewalk_payload p;
 	p.this = getThis();
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lfZ", &mode, &p.callback_i, &p.callback_ic, &callback_data) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lf|z", &mode, &p.callback_i, &p.callback_ic, &p.callback_data) != SUCCESS) {
 		return;
 	}
 

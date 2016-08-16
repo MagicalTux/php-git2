@@ -7,6 +7,7 @@ static zend_object_handlers php_git2_tree_entry_handler;
 typedef struct _git2_tree_entry_object {
 	zend_object std;
 	git_tree_entry *e;
+	zend_bool readonly;
 } git2_tree_entry_object_t;
 
 #define GIT2_TREE_ENTRY_FETCH() git2_tree_entry_object_t *intern = (git2_tree_entry_object_t*)Z_OBJ_P(getThis()); \
@@ -49,6 +50,7 @@ GIT2_TREE_ENTRY_GET_LONG(type)
 GIT2_TREE_ENTRY_GET_LONG(filemode)
 GIT2_TREE_ENTRY_GET_LONG(filemode_raw)
 
+zend_object *php_git2_tree_entry_create_object(zend_class_entry *class_type TSRMLS_DC);
 
 void git2_tree_entry_spawn(zval *return_value, git_tree_entry *e TSRMLS_DC) {
 	git2_tree_entry_object_t *intern;
@@ -56,6 +58,16 @@ void git2_tree_entry_spawn(zval *return_value, git_tree_entry *e TSRMLS_DC) {
 	object_init_ex(return_value, php_git2_tree_entry_ce);
 	intern = (git2_tree_entry_object_t*)Z_OBJ_P(return_value);
 	intern->e = e;
+	intern->readonly = 0;
+}
+
+void git2_tree_entry_spawn_ephemeral(zval *return_value, const git_tree_entry *e TSRMLS_DC) {
+	git2_tree_entry_object_t *intern;
+
+	object_init_ex(return_value, php_git2_tree_entry_ce);
+	intern = (git2_tree_entry_object_t*)Z_OBJ_P(return_value);
+	intern->e = e;
+	intern->readonly = 1;
 }
 
 zend_object *php_git2_tree_entry_create_object(zend_class_entry *class_type TSRMLS_DC) {
@@ -77,7 +89,7 @@ static void php_git2_tree_entry_free_object(zend_object *object TSRMLS_DC) {
 
 	zend_object_std_dtor(&intern->std TSRMLS_CC);
 
-	if (intern->e) {
+	if ((intern->e) && (!intern->readonly)) {
 		git_tree_entry_free(intern->e);
 		intern->e = NULL;
 	}
