@@ -95,7 +95,7 @@ static PHP_METHOD(Reference, peel) {
 	int res = git_reference_peel(&out, intern->ref, type);
 
 	if (res != 0) {
-		git2_throw_last_error(TSRMLS_CC);
+		git2_throw_last_error(TSRMLS_C);
 		return;
 	}
 
@@ -161,7 +161,7 @@ static zend_function_entry git2_reference_methods[] = {
 	{ NULL, NULL, NULL }
 };
 
-void git2_reference_init(TSRMLS_DC) {
+void git2_reference_init(TSRMLS_D) {
 	zend_class_entry ce;
 
 	INIT_NS_CLASS_ENTRY(ce, "Git2", "Reference", git2_reference_methods);

@@ -4,7 +4,7 @@
 
 zend_class_entry *php_git2_exception_ce;
 
-zend_bool git2_throw_last_error(TSRMLS_DC) {
+zend_bool git2_throw_last_error(TSRMLS_D) {
 	// throw an exception for last git error
 	const git_error *e = giterr_last();
 	if (e == NULL) return FAILURE;
@@ -29,7 +29,7 @@ static zend_function_entry php_git2_exception_me[] = {
 	PHP_FE_END
 };
 
-void git2_exception_init(TSRMLS_DC) {
+void git2_exception_init(TSRMLS_D) {
 	zend_class_entry ce;
 
 	INIT_NS_CLASS_ENTRY(ce, "Git2", "Exception", php_git2_exception_me);

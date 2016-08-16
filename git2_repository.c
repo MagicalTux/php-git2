@@ -37,7 +37,7 @@ static PHP_METHOD(Repository, open) {
 	int res = git_repository_open_ext(&intern->repo, path, flags, NULL);
 
 	if (res != 0) {
-		git2_throw_last_error(TSRMLS_CC);
+		git2_throw_last_error(TSRMLS_C);
 		return;
 	}
 }
@@ -62,7 +62,7 @@ static PHP_METHOD(Repository, open_bare) {
 	int res = git_repository_open_bare(&intern->repo, path);
 
 	if (res != 0) {
-		git2_throw_last_error(TSRMLS_CC);
+		git2_throw_last_error(TSRMLS_C);
 		return;
 	}
 }
@@ -89,7 +89,7 @@ static PHP_METHOD(Repository, init) {
 	int res = git_repository_init(&intern->repo, path, is_bare ? 1 : 0);
 
 	if (res != 0) {
-		git2_throw_last_error(TSRMLS_CC);
+		git2_throw_last_error(TSRMLS_C);
 		return;
 	}
 }
@@ -129,7 +129,7 @@ static PHP_METHOD(Repository, init_ext) {
 	int res = git_repository_init_ext(&intern->repo, path, &opts_libgit2);
 
 	if (res != 0) {
-		git2_throw_last_error(TSRMLS_CC);
+		git2_throw_last_error(TSRMLS_C);
 		return;
 	}
 }
@@ -186,7 +186,7 @@ static PHP_METHOD(Repository, config) {
 	git_config *out;
 	int res = git_repository_config(&out, intern->repo);
 	if (res != 0) {
-		git2_throw_last_error(TSRMLS_CC);
+		git2_throw_last_error(TSRMLS_C);
 		return;
 	}
 
@@ -318,7 +318,7 @@ static zend_function_entry git2_repository_methods[] = {
 	{ NULL, NULL, NULL }
 };
 
-void git2_repository_init(TSRMLS_DC) {
+void git2_repository_init(TSRMLS_D) {
 	zend_class_entry ce;
 
 	INIT_NS_CLASS_ENTRY(ce, "Git2", "Repository", git2_repository_methods);

@@ -47,8 +47,7 @@ static PHP_METHOD(Commit, lookup_oid) {
 	int res = git_commit_lookup(&intern->commit, git_repo, &id);
 
 	if (res != 0) {
-		// TODO Throw exception
-		RETURN_NULL();
+		git2_throw_last_error(TSRMLS_C);
 	}
 }
 
@@ -145,7 +144,7 @@ static PHP_METHOD(Commit, tree) {
 	int res = git_commit_tree(&out, intern->commit);
 
 	if (res != 0) {
-		git2_throw_last_error(TSRMLS_CC);
+		git2_throw_last_error(TSRMLS_C);
 		return;
 	}
 
@@ -205,7 +204,7 @@ static zend_function_entry git2_commit_methods[] = {
 	{ NULL, NULL, NULL }
 };
 
-void git2_commit_init(TSRMLS_DC) {
+void git2_commit_init(TSRMLS_D) {
 	zend_class_entry ce;
 
 	INIT_NS_CLASS_ENTRY(ce, "Git2", "Commit", git2_commit_methods);

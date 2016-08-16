@@ -47,8 +47,7 @@ static PHP_METHOD(Tree, lookup_oid) {
 	int res = git_tree_lookup(&intern->tree, git_repo, &id);
 
 	if (res != 0) {
-		// TODO Throw exception
-		RETURN_NULL();
+		git2_throw_last_error(TSRMLS_C);
 	}
 }
 
@@ -213,7 +212,7 @@ static zend_function_entry git2_tree_methods[] = {
 	{ NULL, NULL, NULL }
 };
 
-void git2_tree_init(TSRMLS_DC) {
+void git2_tree_init(TSRMLS_D) {
 	zend_class_entry ce;
 
 	INIT_NS_CLASS_ENTRY(ce, "Git2", "Tree", git2_tree_methods);

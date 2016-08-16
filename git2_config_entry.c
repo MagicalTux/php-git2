@@ -71,7 +71,7 @@ static zend_function_entry git2_config_entry_methods[] = {
 	{ NULL, NULL, NULL }
 };
 
-void git2_config_entry_init(TSRMLS_DC) {
+void git2_config_entry_init(TSRMLS_D) {
 	zend_class_entry ce;
 
 	INIT_NS_CLASS_ENTRY(ce, "Git2\\Config", "Entry", git2_config_entry_methods);

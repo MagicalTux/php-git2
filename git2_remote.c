@@ -246,7 +246,7 @@ static PHP_METHOD(Remote, fetch) {
 	php_git2_strarray_free(&git_refspecs);
 
 	if (res != 0) {
-		git2_throw_last_error(TSRMLS_CC);
+		git2_throw_last_error(TSRMLS_C);
 		return;
 	}
 
@@ -342,7 +342,7 @@ static zend_function_entry git2_remote_methods[] = {
 	{ NULL, NULL, NULL }
 };
 
-void git2_remote_init(TSRMLS_DC) {
+void git2_remote_init(TSRMLS_D) {
 	zend_class_entry ce;
 
 	INIT_NS_CLASS_ENTRY(ce, "Git2", "Remote", git2_remote_methods);
