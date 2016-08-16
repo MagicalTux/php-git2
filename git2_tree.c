@@ -85,6 +85,7 @@ struct git2_treewalk_payload {
 	zval *callback_data;
 	zend_fcall_info callback_i;
 	zend_fcall_info_cache callback_ic;
+	zend_bool aborted;
 };
 
 static int git2_treewalk_cb(const char *root, const git_tree_entry *entry, void *payload) {
@@ -108,11 +109,14 @@ static int git2_treewalk_cb(const char *root, const git_tree_entry *entry, void 
 
 	error = zend_call_function(&p->callback_i, &p->callback_ic);
 	if (error == FAILURE) {
+		p->aborted = 1; // failure of zend_call_function will already throw something (TODO confirm if this is indeed the case)
 		return -1; // causes end of walk
 	} else if (!Z_ISUNDEF(retval)) {
 		convert_to_long(&retval);
 		error = Z_LVAL(retval);
 		zval_ptr_dtor(&retval);
+		if (error < 0)
+			p->aborted = 1;
 	} else {
 		error = 0;
 	}
@@ -134,6 +138,7 @@ static PHP_METHOD(Tree, walk) {
 	struct git2_treewalk_payload p;
 	p.this = getThis();
 	p.callback_data = NULL;
+	p.aborted = 0;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lf|z", &mode, &p.callback_i, &p.callback_ic, &p.callback_data) != SUCCESS) {
 		return;
@@ -151,6 +156,10 @@ static PHP_METHOD(Tree, walk) {
 	}
 
 	int res = git_tree_walk(intern->tree, mode, git2_treewalk_cb, &p);
+
+	if (p.aborted) {
+		RETURN_FALSE; // no point throwing an exception if aborted
+	}
 
 	if (res != 0) {
 		git2_throw_last_error();
