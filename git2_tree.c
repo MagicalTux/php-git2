@@ -2,6 +2,7 @@
 #include "git2_exception.h"
 #include "git2_repository.h"
 #include "git2_tree.h"
+#include "git2_tree_entry.h"
 
 static zend_class_entry *php_git2_tree_ce;
 static zend_object_handlers php_git2_tree_handler;
@@ -79,6 +80,78 @@ static PHP_METHOD(Tree, lookup_oid) {
 GIT2_TREE_GET_OID(id)
 GIT2_TREE_GET_LONG(entrycount)
 
+struct git2_treewalk_payload {
+	zval *this;
+	zval **callback_data;
+	zend_fcall_info callback_i;
+	zend_fcall_info_cache callback_ic;
+};
+
+static int git2_treewalk_cb(const char *root, const git_tree_entry *entry, void *payload) {
+	int error;
+	zval argv[3]; // root, entry, callback_data
+	zval retval;
+	struct git2_treewalk_payload *p = payload;
+
+	ZVAL_STRING(&argv[0], root);
+	git2_tree_entry_spawn(&argv[1], entry);
+	ZVAL_COPY_VALUE(&argv[2], *p->callback_data);
+
+	p->callback_i.retval = &retval;
+	p->callback_i.param_count = 3;
+	p->callback_i.params = argv;
+
+	// TODO HERE
+	error = zend_call_function(&p->callback_i, &p->callback_ic);
+	if (error == FAILURE) {
+		return -1; // causes end of walk
+	} else if (!Z_ISUNDEF(retval)) {
+		convert_to_long(&retval);
+		error = Z_LVAL(retval);
+		zval_ptr_dtor(&retval);
+	}
+
+	zval_ptr_dtor(&argv[0]);
+	zval_ptr_dtor(&argv[1]);
+	zval_ptr_dtor(&argv[2]); // ?
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_tree_walk, 0, 0, 2)
+	ZEND_ARG_INFO(0, mode)
+	ZEND_ARG_INFO(0, callback)
+	ZEND_ARG_INFO(1, callback_data)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Tree, walk) {
+	long mode;
+	zval **callback_data;
+	struct git2_treewalk_payload p;
+	p.this = getThis();
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lfZ", &mode, &p.callback_i, &p.callback_ic, &callback_data) != SUCCESS) {
+		return;
+	}
+
+	GIT2_TREE_FETCH();
+
+	switch(mode) {
+		case GIT_TREEWALK_PRE: case GIT_TREEWALK_POST:
+			break;
+		default:
+			git2_throw_exception(0 TSRMLS_CC, "Invalid mode provided, should be Git2::TREEWALK_PRE or Git2::TREEWALK_POST");
+			return;
+	}
+
+	int res = git_tree_walk(intern->tree, mode, git2_treewalk_cb, &p);
+
+	if (res != 0) {
+		git2_throw_last_error();
+		return;
+	}
+
+	RETURN_TRUE;
+}
+
 void git2_tree_spawn(zval **return_value, git_tree *tree TSRMLS_DC) {
 	git2_tree_object_t *intern;
 
@@ -118,6 +191,7 @@ static zend_function_entry git2_tree_methods[] = {
 	PHP_ME(Tree, lookup_oid, arginfo_tree_id, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_ME(Tree, id, arginfo_tree_id, ZEND_ACC_PUBLIC)
 	PHP_ME(Tree, entrycount, arginfo_tree_entrycount, ZEND_ACC_PUBLIC)
+	PHP_ME(Tree, walk, arginfo_tree_walk, ZEND_ACC_PUBLIC)
 /*	PHP_ME(Tree, __construct, arginfo___construct, ZEND_ACC_PUBLIC) */
 	{ NULL, NULL, NULL }
 };
@@ -134,10 +208,9 @@ void git2_tree_init(TSRMLS_DC) {
 	php_git2_tree_handler.free_obj = php_git2_tree_free_object;
 
 	// normalize
-#define GIT2_REF_CONST(_x) zend_declare_class_constant_long(php_git2_tree_ce, ZEND_STRL(#_x), GIT_REF_ ## _x TSRMLS_CC)
-	GIT2_REF_CONST(FORMAT_NORMAL);
-	GIT2_REF_CONST(FORMAT_ALLOW_ONELEVEL);
-	GIT2_REF_CONST(FORMAT_REFSPEC_PATTERN);
-	GIT2_REF_CONST(FORMAT_REFSPEC_SHORTHAND);
+#define GIT2_TREE_CONST(_x, _y) zend_declare_class_constant_long(php_git2_tree_ce, ZEND_STRL(#_x), _y TSRMLS_CC)
+	
+	GIT2_TREE_CONST(WALK_PRE, GIT_TREEWALK_PRE);
+	GIT2_TREE_CONST(WALK_POST, GIT_TREEWALK_POST);
 }
 
