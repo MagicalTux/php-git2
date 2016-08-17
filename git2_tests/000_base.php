@@ -34,10 +34,7 @@ $cb = function($root, $entry) {
 	echo " + $root".$entry->name()." (".bin2hex($entry->id()).")\n";
 	return 0;
 };
-$test = 'hello';
 
 $tree->walk(Git2\Tree::WALK_POST, $cb);
-
-var_dump($test);
 
 
