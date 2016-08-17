@@ -9,6 +9,7 @@
 #include "git2_remote.h"
 #include "git2_tree.h"
 #include "git2_tree_entry.h"
+#include "git2_blob.h"
 
 static zend_class_entry *php_git2_base_ce;
 static zend_object_handlers php_git2_base_handler;
@@ -81,6 +82,7 @@ PHP_MINIT_FUNCTION(git2) {
 	git2_remote_init(TSRMLS_C);
 	git2_tree_init(TSRMLS_C);
 	git2_tree_entry_init(TSRMLS_C);
+	git2_blob_init(TSRMLS_C);
 
 	return SUCCESS;
 }
