@@ -147,7 +147,7 @@ static PHP_METHOD(Repository, clone) {
 	git2_repository_object_t *intern;
 	git_clone_options opts_libgit2 = GIT_CLONE_OPTIONS_INIT;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssh", &url, &url_len, &local_path, &local_path_len, &opts) == FAILURE)
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|h", &url, &url_len, &local_path, &local_path_len, &opts) == FAILURE)
 		return;
 
 	if (opts != NULL) {
