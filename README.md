@@ -18,13 +18,17 @@ It is highly recommended to link libgit2 statically so when it is updated you wi
 
 By default the configure script will use the local libgit2, so you just need to build it. This can be accomplished by running:
 
+```
   $ ./libgit2_build.sh
+```
 
 You can then build php-git2 as you would any extension:
 
+```
   $ phpize
   $ ./configure
   $ make
   $ make install
+```
 
 To use your system's libgit2, run configure with the `--with-system-libgit2` flag.
