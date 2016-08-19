@@ -262,7 +262,7 @@ static PHP_METHOD(Repository, checkout_head) {
 	HashTable *opts = NULL;
 	git_checkout_options opts_libgit2 = GIT_CHECKOUT_OPTIONS_INIT;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|H", &opts) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|h!", &opts) == FAILURE) {
 		RETURN_FALSE;
 	}
 

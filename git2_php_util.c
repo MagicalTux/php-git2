@@ -8,8 +8,8 @@
 }
 
 #define ARRAY_FETCH_BOOL(_x) if ((data = zend_hash_str_find(ht, ZEND_STRL(#_x))) != NULL) { \
-	convert_to_bool(data); \
-	opts->_x = Z_BVAL_P(data); \
+	convert_to_boolean(data); \
+	opts->_x = Z_LVAL_P(data); \
 }
 
 #define ARRAY_FETCH_STRING(_x) if ((data = zend_hash_str_find(ht, ZEND_STRL(#_x))) != NULL) { \
