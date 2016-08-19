@@ -103,3 +103,33 @@ void git2_parse_checkout_options(git_checkout_options *opts, HashTable *ht) {
 	ARRAY_FETCH_CALLBACK(perfdata_cb, perfdata_payload);
 }
 
+void git2_parse_fetch_options(git_fetch_options *opts, HashTable *ht) {
+	zval *data;
+
+	if (ht == NULL) return; // skip if null
+
+	ARRAY_FETCH_OPTIONS(callbacks, git2_parse_remote_callbacks);
+	ARRAY_FETCH_LONG(prune);
+	ARRAY_FETCH_BOOL(update_fetchhead);
+	ARRAY_FETCH_LONG(download_tags);
+	ARRAY_FETCH_STRARRAY(custom_headers);
+}
+
+void git2_parse_remote_callbacks(git_remote_callbacks *opts, HashTable *ht) {
+	zval *data;
+
+	if (ht == NULL) return; // skip if null
+
+	ARRAY_FETCH_CALLBACK(sideband_progress, payload);
+	ARRAY_FETCH_CALLBACK(completion, payload);
+	ARRAY_FETCH_CALLBACK(credentials, payload);
+	ARRAY_FETCH_CALLBACK(certificate_check, payload);
+	ARRAY_FETCH_CALLBACK(transfer_progress, payload);
+	ARRAY_FETCH_CALLBACK(update_tips, payload);
+	ARRAY_FETCH_CALLBACK(pack_progress, payload);
+	ARRAY_FETCH_CALLBACK(push_transfer_progress, payload);
+	ARRAY_FETCH_CALLBACK(push_update_reference, payload);
+	ARRAY_FETCH_CALLBACK(push_negotiation, payload);
+	ARRAY_FETCH_CALLBACK(transport, payload);
+}
+

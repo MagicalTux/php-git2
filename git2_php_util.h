@@ -8,6 +8,6 @@ void git2_parse_repository_init_options(git_repository_init_options *opts, HashT
 void git2_parse_clone_options(git_clone_options *opts, HashTable *ht);
 void git2_parse_checkout_options(git_checkout_options *opts, HashTable *ht);
 void git2_parse_fetch_options(git_fetch_options *opts, HashTable *ht);
-void git2_parse_checkout_options(git_checkout_options *opts, HashTable *ht);
+void git2_parse_remote_callbacks(git_remote_callbacks *opts, HashTable *ht);
 
 #endif /* GIT2_PHP_UTIL_H */
