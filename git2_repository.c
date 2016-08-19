@@ -106,9 +106,8 @@ static PHP_METHOD(Repository, init_ext) {
 	zval *data;
 	git2_repository_object_t *intern;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sh", &path, &path_len, &opts) == FAILURE) {
-		RETURN_FALSE;
-	}
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sh", &path, &path_len, &opts) == FAILURE)
+		return;
 
 	git_repository_init_options opts_libgit2 = GIT_REPOSITORY_INIT_OPTIONS_INIT;
 	if ((data = zend_hash_str_find(opts, ZEND_STRL("flags"))) != NULL) {
@@ -127,6 +126,46 @@ static PHP_METHOD(Repository, init_ext) {
 	intern = (git2_repository_object_t*)Z_OBJ_P(return_value);
 
 	int res = git_repository_init_ext(&intern->repo, path, &opts_libgit2);
+
+	if (res != 0) {
+		git2_throw_last_error(TSRMLS_C);
+		return;
+	}
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_clone, 0, 0, 2)
+	ZEND_ARG_INFO(0, url)
+	ZEND_ARG_INFO(0, local_path)
+	ZEND_ARG_INFO(0, options)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Repository, clone) {
+	char *url, *local_path;
+	size_t url_len, local_path_len;
+	zval *data;
+	HashTable *opts = NULL;
+	git2_repository_object_t *intern;
+	git_clone_options opts_libgit2 = GIT_CLONE_OPTIONS_INIT;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssh", &url, &url_len, &local_path, &local_path_len, &opts) == FAILURE)
+		return;
+
+	if (opts != NULL) {
+		// TODO hnadle options
+		if ((data = zend_hash_str_find(opts, ZEND_STRL("bare"))) != NULL) {
+			convert_to_bool(data);
+			opts_libgit2.bare = Z_BVAL_P(data);
+		}
+		if ((data = zend_hash_str_find(opts, ZEND_STRL("checkout_branch"))) != NULL) {
+			convert_to_string(data);
+			opts_libgit2.checkout_branch = Z_STRVAL_P(data);
+		}
+	}
+
+	object_init_ex(return_value, php_git2_repository_ce);
+	intern = (git2_repository_object_t*)Z_OBJ_P(return_value);
+
+	int res = git_clone(&intern->repo, url, local_path, &opts_libgit2);
 
 	if (res != 0) {
 		git2_throw_last_error(TSRMLS_C);
@@ -300,6 +339,7 @@ static zend_function_entry git2_repository_methods[] = {
 	PHP_ME(Repository, open_bare, arginfo_repository_open_bare, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_ME(Repository, init, arginfo_repository_init, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_ME(Repository, init_ext, arginfo_repository_init_ext, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(Repository, clone, arginfo_repository_clone, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_ME(Repository, config, arginfo_repository_config, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, head, arginfo_repository_head, ZEND_ACC_PUBLIC)
 	PHP_ME(Repository, set_head, arginfo_repository_set_head, ZEND_ACC_PUBLIC)
