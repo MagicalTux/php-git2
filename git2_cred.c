@@ -11,6 +11,23 @@ typedef struct _git2_cred_object {
 	git_cred *cred;
 } git2_cred_object_t;
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_cred_create_default, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Cred, create_default) {
+	if (zend_parse_parameters_none() == FAILURE) return;
+	git2_cred_object_t *intern;
+
+	object_init_ex(return_value, php_git2_cred_ce);
+	intern = (git2_cred_object_t*)Z_OBJ_P(return_value);
+	int res = git_cred_default_new(&intern->cred);
+
+	if (res != 0) {
+		git2_throw_last_error();
+		return;
+	}
+}
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_cred_create_plaintext, 0, 0, 2)
 	ZEND_ARG_INFO(0, username)
 	ZEND_ARG_INFO(0, password)
@@ -27,6 +44,75 @@ static PHP_METHOD(Cred, create_plaintext) {
 	object_init_ex(return_value, php_git2_cred_ce);
 	intern = (git2_cred_object_t*)Z_OBJ_P(return_value);
 	int res = git_cred_userpass_plaintext_new(&intern->cred, username, password);
+
+	if (res != 0) {
+		git2_throw_last_error();
+		return;
+	}
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_cred_create_ssh_key, 0, 0, 3)
+	ZEND_ARG_INFO(0, username)
+	ZEND_ARG_INFO(0, publickey_file)
+	ZEND_ARG_INFO(0, privatekey_file)
+	ZEND_ARG_INFO(0, passphrase)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Cred, create_ssh_key) {
+	char *username, *publickey_file, *privatekey_file, *passphrase = NULL;
+	size_t username_len, publickey_file_len, privatekey_file_len, passphrase_len;
+	git2_cred_object_t *intern;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sss|s", &username, &username_len, &publickey_file, &publickey_file_len, &privatekey_file, &privatekey_file_len, &passphrase, &passphrase_len) == FAILURE)
+		return;
+
+	object_init_ex(return_value, php_git2_cred_ce);
+	intern = (git2_cred_object_t*)Z_OBJ_P(return_value);
+	int res = git_cred_ssh_key_new(&intern->cred, username, publickey_file, privatekey_file, passphrase);
+
+	if (res != 0) {
+		git2_throw_last_error();
+		return;
+	}
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_cred_create_ssh_key_memory, 0, 0, 3)
+	ZEND_ARG_INFO(0, username)
+	ZEND_ARG_INFO(0, publickey)
+	ZEND_ARG_INFO(0, privatekey)
+	ZEND_ARG_INFO(0, passphrase)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Cred, create_ssh_key_memory) {
+	char *username, *publickey, *privatekey, *passphrase = NULL;
+	size_t username_len, publickey_len, privatekey_len, passphrase_len;
+	git2_cred_object_t *intern;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sss|s", &username, &username_len, &publickey, &publickey_len, &privatekey, &privatekey_len, &passphrase, &passphrase_len) == FAILURE)
+		return;
+
+	object_init_ex(return_value, php_git2_cred_ce);
+	intern = (git2_cred_object_t*)Z_OBJ_P(return_value);
+	int res = git_cred_ssh_key_memory_new(&intern->cred, username, publickey, privatekey, passphrase);
+
+	if (res != 0) {
+		git2_throw_last_error();
+		return;
+	}
+}
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_cred_create_ssh_key_from_agent, 0, 0, 1)
+	ZEND_ARG_INFO(0, username)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Cred, create_ssh_key_from_agent) {
+	char *username;
+	size_t username_len;
+	git2_cred_object_t *intern;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &username, &username_len) == FAILURE)
+		return;
+
+	object_init_ex(return_value, php_git2_cred_ce);
+	intern = (git2_cred_object_t*)Z_OBJ_P(return_value);
+	int res = git_cred_ssh_key_from_agent(&intern->cred, username);
 
 	if (res != 0) {
 		git2_throw_last_error();
@@ -88,7 +174,11 @@ static void php_git2_cred_free_object(zend_object *object TSRMLS_DC) {
 #define PHP_GIT2_CRED_ME_P(_x) PHP_ME(Cred, _x, arginfo_cred_##_x, ZEND_ACC_PUBLIC)
 
 static zend_function_entry git2_cred_methods[] = {
+	PHP_ME(Cred, create_default, arginfo_cred_create_default, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_ME(Cred, create_plaintext, arginfo_cred_create_plaintext, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(Cred, create_ssh_key, arginfo_cred_create_ssh_key, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(Cred, create_ssh_key_memory, arginfo_cred_create_ssh_key_memory, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(Cred, create_ssh_key_from_agent, arginfo_cred_create_ssh_key_from_agent, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_GIT2_CRED_ME_P(has_username)
 /*	PHP_ME(Cred, __construct, arginfo___construct, ZEND_ACC_PUBLIC) */
 	{ NULL, NULL, NULL }
