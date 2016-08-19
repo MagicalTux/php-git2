@@ -30,13 +30,13 @@
 
 // all remote callbacks have the same payload, so this makes a large structure
 struct git2_remote_callbacks_payload {
-	zval *credentials_callback;
+	zval credentials_callback;
 	zend_fcall_info_cache fci_cache;
 };
 
 int git2_callback_credentials_call(git_cred **cred, const char *url, const char *username_from_url, unsigned int allowed_types, void *payload) {
 	struct git2_remote_callbacks_payload *p = (struct git2_remote_callbacks_payload*)payload;
-	if (p->credentials_callback == NULL) return 1; // ??
+	if (Z_ISUNDEF(p->credentials_callback)) return 1; // ??
 
 	zend_fcall_info fci;
 	zval argv[3];
@@ -50,7 +50,7 @@ int git2_callback_credentials_call(git_cred **cred, const char *url, const char 
 	fci.size = sizeof(fci);
 	fci.function_table = EG(function_table);
 	fci.object = NULL;
-	ZVAL_COPY_VALUE(&fci.function_name, p->credentials_callback);
+	ZVAL_COPY_VALUE(&fci.function_name, &p->credentials_callback);
 	fci.retval = &retval;
 	fci.param_count = 3;
 	fci.params = argv;
@@ -70,8 +70,10 @@ int git2_callback_credentials_call(git_cred **cred, const char *url, const char 
 		git_cred *c = git2_cred_take_from_zval(&retval); // will return NULL if not a cred object or used more than once
 		if (c) {
 			*cred = c;
+			zval_ptr_dtor(&retval);
 			return 0;
 		}
+		zval_ptr_dtor(&retval);
 		return 1;
 	} else {
 		return 1;
@@ -89,7 +91,12 @@ static void git2_callback_credentials_set(git_cred_acquire_cb *cb, void **payloa
 		p = (struct git2_remote_callbacks_payload*)*payload;
 	}
 
-	p->credentials_callback = callback;
+	if (!Z_ISUNDEF(p->credentials_callback)) {
+		zval_ptr_dtor(&p->credentials_callback);
+		p->fci_cache = empty_fcall_info_cache;
+	}
+
+	ZVAL_COPY(&p->credentials_callback, callback);
 	*cb = git2_callback_credentials_call;
 }
 
