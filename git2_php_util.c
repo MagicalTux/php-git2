@@ -1,5 +1,6 @@
 #include "php_git2.h"
 #include "git2_php_util.h"
+#include "git2_cred.h"
 
 #define ARRAY_FETCH_LONG(_x) if ((data = zend_hash_str_find(ht, ZEND_STRL(#_x))) != NULL) { \
 	convert_to_long(data); \
@@ -23,7 +24,74 @@
 
 #define ARRAY_FETCH_STRARRAY(_x) ARRAY_FETCH_OPTIONS(_x, php_git2_ht_to_strarray)
 
-#define ARRAY_FETCH_CALLBACK(_x, _payload) /* TODO */
+#define ARRAY_FETCH_CALLBACK(_x, _payload) if ((data = zend_hash_str_find(ht, ZEND_STRL(#_x))) != NULL) { \
+	git2_callback_ ## _x ## _set(&opts->_x, &opts->_payload, data); \
+}
+
+// all remote callbacks have the same payload, so this makes a large structure
+struct git2_remote_callbacks_payload {
+	zval *credentials_callback;
+	zend_fcall_info_cache fci_cache;
+};
+
+int git2_callback_credentials_call(git_cred **cred, const char *url, const char *username_from_url, unsigned int allowed_types, void *payload) {
+	struct git2_remote_callbacks_payload *p = (struct git2_remote_callbacks_payload*)payload;
+	if (p->credentials_callback == NULL) return 1; // ??
+
+	zend_fcall_info fci;
+	zval argv[3];
+	zval retval;
+	int error;
+
+	ZVAL_STRING(&argv[0], url);
+	ZVAL_STRING(&argv[1], username_from_url);
+	ZVAL_LONG(&argv[2], allowed_types);
+
+	fci.size = sizeof(fci);
+	fci.function_table = EG(function_table);
+	fci.object = NULL;
+	ZVAL_COPY_VALUE(&fci.function_name, p->credentials_callback);
+	fci.retval = &retval;
+	fci.param_count = 3;
+	fci.params = argv;
+	fci.no_separation = 0;
+	fci.symbol_table = NULL;
+
+	error = zend_call_function(&fci, &p->fci_cache);
+
+	zval_ptr_dtor(&argv[0]);
+	zval_ptr_dtor(&argv[1]);
+	zval_ptr_dtor(&argv[2]);
+
+	if (error == FAILURE) {
+		php_error_docref(NULL, E_WARNING, "Callback for git credentials failed");
+		return -1;
+	} else if (!Z_ISUNDEF(retval)) {
+		git_cred *c = git2_cred_take_from_zval(&retval); // will return NULL if not a cred object or used more than once
+		if (c) {
+			*cred = c;
+			return 0;
+		}
+		return 1;
+	} else {
+		return 1;
+	}
+}
+
+static void git2_callback_credentials_set(git_cred_acquire_cb *cb, void **payload, zval *callback) {
+	struct git2_remote_callbacks_payload *p;
+	if (*payload == NULL) {
+		*payload = emalloc(sizeof(struct git2_remote_callbacks_payload));
+		memset(*payload, 0, sizeof(struct git2_remote_callbacks_payload));
+		p = (struct git2_remote_callbacks_payload*)*payload;
+		p->fci_cache = empty_fcall_info_cache;
+	} else {
+		p = (struct git2_remote_callbacks_payload*)*payload;
+	}
+
+	p->credentials_callback = callback;
+	*cb = git2_callback_credentials_call;
+}
 
 void php_git2_ht_to_strarray(git_strarray *out, HashTable *in) {
 	uint32_t count = zend_array_count(in);

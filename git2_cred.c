@@ -14,6 +14,25 @@ typedef struct _git2_cred_object {
 ZEND_BEGIN_ARG_INFO_EX(arginfo_cred_create_default, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
+git_cred *git2_cred_extract_from_zval(zval *zv) {
+	if (Z_TYPE_P(zv) != IS_OBJECT) return NULL;
+	if (Z_OBJCE_P(zv) != php_git2_cred_ce) return NULL;
+
+	git2_cred_object_t *intern = (git2_cred_object_t*)Z_OBJ_P(zv);
+	return intern->cred;
+}
+
+git_cred *git2_cred_take_from_zval(zval *zv) {
+	git_cred *cred;
+	if (Z_TYPE_P(zv) != IS_OBJECT) return NULL;
+	if (Z_OBJCE_P(zv) != php_git2_cred_ce) return NULL;
+
+	git2_cred_object_t *intern = (git2_cred_object_t*)Z_OBJ_P(zv);
+	cred = intern->cred;
+	intern->cred = NULL;
+	return cred;
+}
+
 static PHP_METHOD(Cred, create_default) {
 	if (zend_parse_parameters_none() == FAILURE) return;
 	git2_cred_object_t *intern;

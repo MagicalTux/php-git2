@@ -36,7 +36,4 @@ extern zend_module_entry git2_module_entry;
 #define PHP_GIT2_API
 #endif
 
-//PHP_GIT2_API zend_class_entry *php_git2_get_repository(void);
-
-
 #endif /* PHP_GIT2_H */
