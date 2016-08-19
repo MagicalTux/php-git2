@@ -96,6 +96,7 @@ static void php_git2_tree_entry_free_object(zend_object *object TSRMLS_DC) {
 
 #define PHP_GIT2_TREE_ENTRY_ME(_x) PHP_ME(Entry, _x, arginfo_tree_entry_##_x, ZEND_ACC_PUBLIC)
 static zend_function_entry git2_tree_entry_methods[] = {
+//	PHP_ME(Entry, bypath, arginfo_tree_entry_bypath, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC);
 	PHP_GIT2_TREE_ENTRY_ME(name)
 	PHP_GIT2_TREE_ENTRY_ME(id)
 	PHP_GIT2_TREE_ENTRY_ME(type)

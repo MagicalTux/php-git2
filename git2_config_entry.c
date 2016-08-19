@@ -29,11 +29,11 @@ typedef struct _git2_config_entry_object {
 GIT2_CONFIG_ENTRY_GET_STRING(name)
 GIT2_CONFIG_ENTRY_GET_STRING(value)
 
-void git2_config_entry_spawn(zval **return_value, git_config_entry *e TSRMLS_DC) {
+void git2_config_entry_spawn(zval *return_value, git_config_entry *e TSRMLS_DC) {
 	git2_config_entry_object_t *intern;
 
-	object_init_ex(*return_value, php_git2_config_entry_ce);
-	intern = (git2_config_entry_object_t*)Z_OBJ_P(*return_value);
+	object_init_ex(return_value, php_git2_config_entry_ce);
+	intern = (git2_config_entry_object_t*)Z_OBJ_P(return_value);
 	intern->e = e;
 }
 

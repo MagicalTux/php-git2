@@ -168,11 +168,35 @@ static PHP_METHOD(Tree, walk) {
 	RETURN_TRUE;
 }
 
-void git2_tree_spawn(zval **return_value, git_tree *tree TSRMLS_DC) {
+ZEND_BEGIN_ARG_INFO_EX(arginfo_tree_entry_bypath, 0, 0, 1)
+	ZEND_ARG_INFO(0, path)
+ZEND_END_ARG_INFO()
+
+static PHP_METHOD(Tree, entry_bypath) {
+	char *path;
+	size_t path_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &path, &path_len) != SUCCESS) {
+		return;
+	}
+	GIT2_TREE_FETCH();
+
+	git_tree_entry *out;
+	int res = git_tree_entry_bypath(&out, intern->tree, path);
+
+	if (res != 0) {
+		git2_throw_last_error();
+		return;
+	}
+
+	git2_tree_entry_spawn(return_value, out TSRMLS_CC);
+}
+
+void git2_tree_spawn(zval *return_value, git_tree *tree TSRMLS_DC) {
 	git2_tree_object_t *intern;
 
-	object_init_ex(*return_value, php_git2_tree_ce);
-	intern = (git2_tree_object_t*)Z_OBJ_P(*return_value);
+	object_init_ex(return_value, php_git2_tree_ce);
+	intern = (git2_tree_object_t*)Z_OBJ_P(return_value);
 	intern->tree = tree;
 }
 
@@ -208,6 +232,7 @@ static zend_function_entry git2_tree_methods[] = {
 	PHP_ME(Tree, id, arginfo_tree_id, ZEND_ACC_PUBLIC)
 	PHP_ME(Tree, entrycount, arginfo_tree_entrycount, ZEND_ACC_PUBLIC)
 	PHP_ME(Tree, walk, arginfo_tree_walk, ZEND_ACC_PUBLIC)
+	PHP_ME(Tree, entry_bypath, arginfo_tree_entry_bypath, ZEND_ACC_PUBLIC)
 /*	PHP_ME(Tree, __construct, arginfo___construct, ZEND_ACC_PUBLIC) */
 	{ NULL, NULL, NULL }
 };

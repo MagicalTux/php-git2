@@ -148,14 +148,14 @@ static PHP_METHOD(Commit, tree) {
 		return;
 	}
 
-	git2_tree_spawn(&return_value, out);
+	git2_tree_spawn(return_value, out);
 }
 
-void git2_commit_spawn(zval **return_value, git_commit *commit TSRMLS_DC) {
+void git2_commit_spawn(zval *return_value, git_commit *commit TSRMLS_DC) {
 	git2_commit_object_t *intern;
 
-	object_init_ex(*return_value, php_git2_commit_ce);
-	intern = (git2_commit_object_t*)Z_OBJ_P(*return_value);
+	object_init_ex(return_value, php_git2_commit_ce);
+	intern = (git2_commit_object_t*)Z_OBJ_P(return_value);
 	intern->commit = commit;
 }
 

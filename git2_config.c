@@ -35,7 +35,7 @@ static PHP_METHOD(Config, get_entry) {
 		RETURN_NULL();
 	}
 
-	git2_config_entry_spawn(&return_value, e);
+	git2_config_entry_spawn(return_value, e);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_config_export, 0, 0, 0)
@@ -88,11 +88,11 @@ static PHP_METHOD(Config, set_string) {
 	RETURN_TRUE;
 }
 
-void git2_config_spawn(zval **return_value, git_config *config TSRMLS_DC) {
+void git2_config_spawn(zval *return_value, git_config *config TSRMLS_DC) {
 	git2_config_object_t *intern;
 
-	object_init_ex(*return_value, php_git2_config_ce);
-	intern = (git2_config_object_t*)Z_OBJ_P(*return_value);
+	object_init_ex(return_value, php_git2_config_ce);
+	intern = (git2_config_object_t*)Z_OBJ_P(return_value);
 	intern->config = config;
 }
 

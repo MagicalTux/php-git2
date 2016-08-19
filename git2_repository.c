@@ -190,7 +190,7 @@ static PHP_METHOD(Repository, config) {
 		return;
 	}
 
-	git2_config_spawn(&return_value, out TSRMLS_CC);
+	git2_config_spawn(return_value, out TSRMLS_CC);
 }
 
 
@@ -208,7 +208,7 @@ static PHP_METHOD(Repository, head) {
 		RETURN_FALSE;
 	}
 
-	git2_reference_spawn(&return_value, out TSRMLS_CC);
+	git2_reference_spawn(return_value, out TSRMLS_CC);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_repository_set_head, 0, 0, 1)

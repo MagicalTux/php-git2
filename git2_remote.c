@@ -285,11 +285,11 @@ static PHP_METHOD(Remote, push) {
 	RETURN_FALSE;
 }
 
-void git2_remote_spawn(zval **return_value, git_remote *remote TSRMLS_DC) {
+void git2_remote_spawn(zval *return_value, git_remote *remote TSRMLS_DC) {
 	git2_remote_object_t *intern;
 
-	object_init_ex(*return_value, php_git2_remote_ce);
-	intern = (git2_remote_object_t*)Z_OBJ_P(*return_value);
+	object_init_ex(return_value, php_git2_remote_ce);
+	intern = (git2_remote_object_t*)Z_OBJ_P(return_value);
 	intern->remote = remote;
 }
 

@@ -2,6 +2,8 @@
 #include "git2_exception.h"
 #include "git2_reference.h"
 #include "git2_commit.h"
+#include "git2_tree.h"
+#include "git2_blob.h"
 
 static zend_class_entry *php_git2_reference_ce;
 static zend_object_handlers php_git2_reference_handler;
@@ -68,7 +70,7 @@ static PHP_METHOD(Reference, resolve) {
 		RETURN_FALSE;
 	}
 
-	git2_reference_spawn(&return_value, out TSRMLS_CC);
+	git2_reference_spawn(return_value, out TSRMLS_CC);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_reference_peel, 0, 0, 1)
@@ -102,7 +104,13 @@ static PHP_METHOD(Reference, peel) {
 	// TODO find object type, instanciate
 	switch(git_object_type(out)) {
 		case GIT_OBJ_COMMIT:
-			git2_commit_spawn(&return_value, (git_commit*)out TSRMLS_CC);
+			git2_commit_spawn(return_value, (git_commit*)out TSRMLS_CC);
+			return;
+		case GIT_OBJ_TREE:
+			git2_tree_spawn(return_value, (git_tree*)out TSRMLS_CC);
+			return;
+		case GIT_OBJ_BLOB:
+			git2_blob_spawn(return_value, (git_blob*)out TSRMLS_CC);
 			return;
 		default:
 			git2_throw_exception(0 TSRMLS_CC, "Type of object is not implemented");
@@ -110,11 +118,11 @@ static PHP_METHOD(Reference, peel) {
 	}
 }
 
-void git2_reference_spawn(zval **return_value, git_reference *ref TSRMLS_DC) {
+void git2_reference_spawn(zval *return_value, git_reference *ref TSRMLS_DC) {
 	git2_reference_object_t *intern;
 
-	object_init_ex(*return_value, php_git2_reference_ce);
-	intern = (git2_reference_object_t*)Z_OBJ_P(*return_value);
+	object_init_ex(return_value, php_git2_reference_ce);
+	intern = (git2_reference_object_t*)Z_OBJ_P(return_value);
 	intern->ref = ref;
 }
 

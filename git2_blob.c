@@ -109,11 +109,11 @@ static PHP_METHOD(Blob, rawcontent) {
 	RETURN_STRINGL((const char*)res, len);
 }
 
-void git2_blob_spawn(zval **return_value, git_blob *blob TSRMLS_DC) {
+void git2_blob_spawn(zval *return_value, git_blob *blob TSRMLS_DC) {
 	git2_blob_object_t *intern;
 
-	object_init_ex(*return_value, php_git2_blob_ce);
-	intern = (git2_blob_object_t*)Z_OBJ_P(*return_value);
+	object_init_ex(return_value, php_git2_blob_ce);
+	intern = (git2_blob_object_t*)Z_OBJ_P(return_value);
 	intern->blob = blob;
 }
 
