@@ -180,7 +180,6 @@ void git2_parse_checkout_options(git_checkout_options *opts, HashTable *ht) {
 
 void git2_parse_fetch_options(git_fetch_options *opts, HashTable *ht) {
 	zval *data;
-
 	if (ht == NULL) return; // skip if null
 
 	ARRAY_FETCH_OPTIONS(callbacks, git2_parse_remote_callbacks);
