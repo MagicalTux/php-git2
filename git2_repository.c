@@ -2,6 +2,7 @@
 #include "git2_repository.h"
 #include "git2_config.h"
 #include "git2_reference.h"
+#include "git2_php_util.h"
 
 static zend_class_entry *php_git2_repository_ce;
 static zend_object_handlers php_git2_repository_handler;
@@ -103,26 +104,15 @@ static PHP_METHOD(Repository, init_ext) {
 	char *path;
 	size_t path_len;
 	HashTable *opts;
-	zval *data;
 	git2_repository_object_t *intern;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sh", &path, &path_len, &opts) == FAILURE)
 		return;
 
 	git_repository_init_options opts_libgit2 = GIT_REPOSITORY_INIT_OPTIONS_INIT;
-	if ((data = zend_hash_str_find(opts, ZEND_STRL("flags"))) != NULL) {
-		convert_to_long(data); // is it safe to call convert_to_long() here?
-		opts_libgit2.flags = Z_LVAL_P(data);
-	}
-
-	if ((data = zend_hash_str_find(opts, ZEND_STRL("mode"))) != NULL) {
-		convert_to_long(data); // is it safe to call convert_to_long() here?
-		opts_libgit2.mode = Z_LVAL_P(data);
-	}
-	// TODO: workdir_path description template_path initial_head origin_url
+	git2_parse_repository_init_options(&opts_libgit2, opts);
 
 	object_init_ex(return_value, php_git2_repository_ce);
-
 	intern = (git2_repository_object_t*)Z_OBJ_P(return_value);
 
 	int res = git_repository_init_ext(&intern->repo, path, &opts_libgit2);
@@ -150,17 +140,7 @@ static PHP_METHOD(Repository, clone) {
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|h", &url, &url_len, &local_path, &local_path_len, &opts) == FAILURE)
 		return;
 
-	if (opts != NULL) {
-		// TODO hnadle options
-		if ((data = zend_hash_str_find(opts, ZEND_STRL("bare"))) != NULL) {
-			convert_to_bool(data);
-			opts_libgit2.bare = Z_BVAL_P(data);
-		}
-		if ((data = zend_hash_str_find(opts, ZEND_STRL("checkout_branch"))) != NULL) {
-			convert_to_string(data);
-			opts_libgit2.checkout_branch = Z_STRVAL_P(data);
-		}
-	}
+	git2_parse_clone_options(&opts_libgit2, opts);
 
 	object_init_ex(return_value, php_git2_repository_ce);
 	intern = (git2_repository_object_t*)Z_OBJ_P(return_value);
@@ -280,6 +260,7 @@ ZEND_END_ARG_INFO()
 
 static PHP_METHOD(Repository, checkout_head) {
 	HashTable *opts = NULL;
+	git_checkout_options opts_libgit2 = GIT_CHECKOUT_OPTIONS_INIT;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|H", &opts) == FAILURE) {
 		RETURN_FALSE;
@@ -287,9 +268,9 @@ static PHP_METHOD(Repository, checkout_head) {
 
 	GIT2_REPOSITORY_FETCH();
 
-	// TODO handle opts
+	git2_parse_checkout_options(&opts_libgit2, opts);
 
-	int res = git_checkout_head(intern->repo, NULL);
+	int res = git_checkout_head(intern->repo, &opts_libgit2);
 
 	if (res != 0) {
 		git2_throw_last_error();

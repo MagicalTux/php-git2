@@ -14,33 +14,6 @@
 static zend_class_entry *php_git2_base_ce;
 static zend_object_handlers php_git2_base_handler;
 
-void php_git2_ht_to_strarray(git_strarray *out, HashTable *in) {
-	uint32_t count = zend_array_count(in);
-	out->count = count;
-	if (count == 0) return;
-
-	out->strings = emalloc(sizeof(char*) * count);
-	uint32_t cur_pos = 0;
-
-	HashPosition position;
-	zval *data = NULL;
-
-	for (zend_hash_internal_pointer_reset_ex(in, &position);
-	    data = zend_hash_get_current_data_ex(in, &position);
-	    zend_hash_move_forward_ex(in, &position)) {
-
-	    convert_to_string(data);
-	    out->strings[cur_pos] = Z_STRVAL_P(data);
-	    cur_pos += 1;
-	}
-}
-
-void php_git2_strarray_free(git_strarray *a) {
-	if (a->count > 0) {
-		efree(a->strings);
-	}
-}
-
 static zend_function_entry git2_base_methods[] = {
 	{ NULL, NULL, NULL }
 };
