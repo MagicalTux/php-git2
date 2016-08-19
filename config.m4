@@ -1,7 +1,7 @@
 PHP_ARG_ENABLE(git2, whether to enable the "git2" extension,
 	[  --enable-git2           Enable "php-git2" extension support])
 
-PHP_ARG_ENABLE(system-libgit2, whether to build with system libgit2,
+PHP_ARG_WITH(system-libgit2, whether to build with system libgit2,
 	[  --with-system-libgit2   Build php-git2 with system libgit2], no, no)
 
 if test $PHP_GIT2 != "no"; then
