@@ -20,6 +20,6 @@ if test $PHP_GIT2 != "no"; then
 		PHP_ADD_LIBRARY_WITH_PATH(git2, libgit2/build, GIT2_SHARED_LIBADD)
 	fi
 
-	PHP_NEW_EXTENSION(git2, php_git2.c git2_exception.c git2_repository.c git2_config.c git2_config_entry.c git2_reference.c git2_commit.c git2_remote.c git2_tree.c git2_tree_entry.c git2_blob.c git2_php_util.c, $ext_shared)
+	PHP_NEW_EXTENSION(git2, php_git2.c git2_php_util.c git2_exception.c git2_repository.c git2_config.c git2_config_entry.c git2_reference.c git2_commit.c git2_remote.c git2_tree.c git2_tree_entry.c git2_blob.c git2_cred.c, $ext_shared)
 	PHP_SUBST(GIT2_SHARED_LIBADD)
 fi
