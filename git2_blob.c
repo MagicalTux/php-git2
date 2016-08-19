@@ -95,6 +95,7 @@ static PHP_METHOD(Blob, lookup_oid) {
 
 GIT2_BLOB_GET_OID(id)
 GIT2_BLOB_GET_BOOL(is_binary)
+GIT2_BLOB_GET_LONG(rawsize)
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_blob_rawcontent, 0, 0, 0)
 ZEND_END_ARG_INFO()
@@ -153,6 +154,7 @@ static zend_function_entry git2_blob_methods[] = {
 	PHP_GIT2_BLOB_ME_P(id)
 	PHP_GIT2_BLOB_ME_P(is_binary)
 	PHP_GIT2_BLOB_ME_P(rawcontent)
+	PHP_GIT2_BLOB_ME_P(rawsize)
 /*	PHP_ME(Blob, __construct, arginfo___construct, ZEND_ACC_PUBLIC) */
 	{ NULL, NULL, NULL }
 };
