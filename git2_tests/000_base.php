@@ -30,8 +30,21 @@ var_dump($tree);
 var_dump(bin2hex($tree->id()));
 var_dump($tree->entrycount());
 
-$cb = function($root, $entry) {
-	echo " + $root".$entry->name()." (".bin2hex($entry->id()).")\n";
+$cb = function($root, $entry) use ($repo) {
+	$fullname = $root.$entry->name();
+	echo " + $fullname (".bin2hex($entry->id()).")\n";
+	if ($fullname == 'README.md') {
+		// fetch contents, compare with actual README.md (will fail if uncommitted changes exist in file)
+		$blob = Git2\Blob::lookup_oid($repo, $entry->id());
+		$data = $blob->rawcontent();
+		$actual_data = file_get_contents(dirname(__DIR__).'/README.md');
+		if ($data == $actual_data) {
+			echo " `- TEST OK\n";
+		} else {
+			echo " `- TEST FAILED ! (data different, uncommitted changes?)\n";
+			exit(1);
+		}
+	}
 	return 0;
 };
 

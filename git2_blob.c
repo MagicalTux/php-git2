@@ -100,23 +100,13 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_blob_rawcontent, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
 static PHP_METHOD(Blob, rawcontent) {
-	zend_bool is_push;
-
+	if (zend_parse_parameters_none() == FAILURE) return;
 	GIT2_BLOB_FETCH();
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "b", &is_push) == FAILURE) {
-		return;
-	}
+	const void *res = git_blob_rawcontent(intern->blob);
+	git_off_t len = git_blob_rawsize(intern->blob);
 
-	// TODO handle callbacks
-	int res = git_blob_connect(intern->blob, is_push ? GIT_DIRECTION_PUSH : GIT_DIRECTION_FETCH, NULL, NULL);
-
-	if (res == 0) {
-		RETURN_TRUE;
-	}
-
-	git2_throw_last_error();
-	RETURN_FALSE;
+	RETURN_STRINGL((const char*)res, len);
 }
 
 void git2_blob_spawn(zval **return_value, git_blob *blob TSRMLS_DC) {
@@ -157,6 +147,7 @@ static void php_git2_blob_free_object(zend_object *object TSRMLS_DC) {
 #define PHP_GIT2_BLOB_ME_P(_x) PHP_ME(Blob, _x, arginfo_blob_##_x, ZEND_ACC_PUBLIC)
 
 static zend_function_entry git2_blob_methods[] = {
+	PHP_ME(Blob, lookup_oid, arginfo_blob_lookup_oid, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 //	PHP_ME(Blob, create_fromworkdir, arginfo_blob_create_fromworkdir, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 //	PHP_ME(Blob, create_fromdisk, arginfo_blob_create_fromdisk, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_GIT2_BLOB_ME_P(id)
