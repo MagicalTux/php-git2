@@ -133,3 +133,12 @@ void git2_parse_remote_callbacks(git_remote_callbacks *opts, HashTable *ht) {
 	ARRAY_FETCH_CALLBACK(transport, payload);
 }
 
+void git2_parse_push_options(git_push_options *opts, HashTable *ht) {
+	zval *data;
+	if (ht == NULL) return;
+	
+	ARRAY_FETCH_LONG(pb_parallelism);
+	ARRAY_FETCH_OPTIONS(callbacks, git2_parse_remote_callbacks);
+	ARRAY_FETCH_STRARRAY(custom_headers);
+}
+

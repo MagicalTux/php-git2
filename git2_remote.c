@@ -2,6 +2,7 @@
 #include "git2_exception.h"
 #include "git2_remote.h"
 #include "git2_repository.h"
+#include "git2_php_util.h"
 
 static zend_class_entry *php_git2_remote_ce;
 static zend_object_handlers php_git2_remote_handler;
@@ -193,18 +194,22 @@ static PHP_METHOD(Remote, disconnect) {
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_download, 0, 0, 0)
 	ZEND_ARG_INFO(0, refspecs)
+	ZEND_ARG_INFO(0, opts)
 ZEND_END_ARG_INFO()
 
 static PHP_METHOD(Remote, download) {
 	HashTable *refspecs = NULL;
+	HashTable *opts = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|a", &refspecs) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|aa", &refspecs, &opts) != SUCCESS) {
 		return;
 	}
 
 	GIT2_REMOTE_FETCH();
-	// TODO add git_fetch_options handling
+
 	git_fetch_options git_opts = GIT_FETCH_OPTIONS_INIT;
+	git2_parse_fetch_options(&git_opts, opts);
+
 	git_strarray git_refspecs;
 	git_refspecs.count = 0;
 
@@ -223,18 +228,22 @@ static PHP_METHOD(Remote, download) {
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_fetch, 0, 0, 0)
 	ZEND_ARG_INFO(0, refspecs)
+	ZEND_ARG_INFO(0, opts)
 ZEND_END_ARG_INFO()
 
 static PHP_METHOD(Remote, fetch) {
 	HashTable *refspecs = NULL;
+	HashTable *opts = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|a", &refspecs) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|aa", &refspecs, &opts) != SUCCESS) {
 		return;
 	}
 
 	GIT2_REMOTE_FETCH();
-	// TODO add git_fetch_options handling and reflog_message
+
 	git_fetch_options git_opts = GIT_FETCH_OPTIONS_INIT;
+	git2_parse_fetch_options(&git_opts, opts);
+
 	git_strarray git_refspecs;
 	git_refspecs.count = 0;
 
@@ -254,14 +263,29 @@ static PHP_METHOD(Remote, fetch) {
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_upload, 0, 0, 0)
+	ZEND_ARG_INFO(0, refspecs)
+	ZEND_ARG_INFO(0, opts)
 ZEND_END_ARG_INFO()
 
 static PHP_METHOD(Remote, upload) {
-	if (zend_parse_parameters_none() == FAILURE) return;
-	GIT2_REMOTE_FETCH();
-	// TODO add git_push_options handling
+	HashTable *refspecs = NULL;
+	HashTable *opts = NULL;
 
-	int res = git_remote_upload(intern->remote, NULL, NULL);
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|aa", &refspecs, &opts) != SUCCESS) {
+		return;
+	}
+	GIT2_REMOTE_FETCH();
+
+	git_push_options git_opts;
+	git2_parse_push_options(&git_opts, opts);
+
+	git_strarray git_refspecs;
+	git_refspecs.count = 0;
+
+	if (refspecs)
+		php_git2_ht_to_strarray(&git_refspecs, refspecs);
+
+	int res = git_remote_upload(intern->remote, &git_refspecs, &git_opts);
 
 	if (res == 0) {
 		RETURN_TRUE;
@@ -270,14 +294,29 @@ static PHP_METHOD(Remote, upload) {
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_remote_push, 0, 0, 0)
+	ZEND_ARG_INFO(0, refspecs)
+	ZEND_ARG_INFO(0, opts)
 ZEND_END_ARG_INFO()
 
 static PHP_METHOD(Remote, push) {
-	if (zend_parse_parameters_none() == FAILURE) return;
-	GIT2_REMOTE_FETCH();
-	// TODO add git_push_options handling
+	HashTable *refspecs = NULL;
+	HashTable *opts = NULL;
 
-	int res = git_remote_push(intern->remote, NULL, NULL);
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|aa", &refspecs, &opts) != SUCCESS) {
+		return;
+	}
+	GIT2_REMOTE_FETCH();
+
+	git_push_options git_opts;
+	git2_parse_push_options(&git_opts, opts);
+
+	git_strarray git_refspecs;
+	git_refspecs.count = 0;
+
+	if (refspecs)
+		php_git2_ht_to_strarray(&git_refspecs, refspecs);
+
+	int res = git_remote_push(intern->remote, &git_refspecs, &git_opts);
 
 	if (res == 0) {
 		RETURN_TRUE;
