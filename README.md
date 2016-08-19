@@ -1,3 +1,5 @@
+[![Build Status - master](https://travis-ci.org/MagicalTux/php-git2.png?branch=master)](https://travis-ci.org/MagicalTux/php-git2)
+
 # libgit2 bindings for PHP 7
 
 Because I need libgit2 and the implementation at https://github.com/libgit2/php-git doesn't appear maintained anymore (and no PHP7 implementation currently exists) I decided to put one together quickly with simple classes close to the original libgit2 syntax.

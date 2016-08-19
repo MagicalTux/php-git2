@@ -2,7 +2,13 @@ sudo: required
 language: php
 php:
   - 7.0
-before_install: ./libgit2_build.sh && phpize
-install: ./configure --prefix=/usr && sudo make install
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libhttp-parser-dev libssh2-1-dev
+  - ./libgit2_build.sh
+  - phpize
+install:
+  - ./configure --prefix=/usr
+  - sudo make install
 before_script: echo 'extension = git2.so' >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 script: ./test.sh
