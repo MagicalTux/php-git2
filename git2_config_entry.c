@@ -1,5 +1,6 @@
 #include "php_git2.h"
 #include "git2_config_entry.h"
+#include "git2_exception.h"
 
 static zend_class_entry *php_git2_config_entry_ce;
 static zend_object_handlers php_git2_config_entry_handler;

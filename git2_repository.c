@@ -3,6 +3,7 @@
 #include "git2_config.h"
 #include "git2_reference.h"
 #include "git2_php_util.h"
+#include "git2_exception.h"
 
 static zend_class_entry *php_git2_repository_ce;
 static zend_object_handlers php_git2_repository_handler;
