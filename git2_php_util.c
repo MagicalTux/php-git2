@@ -47,15 +47,14 @@ int git2_callback_credentials_call(git_cred **cred, const char *url, const char 
 	ZVAL_STRING(&argv[1], username_from_url);
 	ZVAL_LONG(&argv[2], allowed_types);
 
+	memset(&fci, 0, sizeof(fci));
 	fci.size = sizeof(fci);
-	fci.function_table = EG(function_table);
 	fci.object = NULL;
 	ZVAL_COPY_VALUE(&fci.function_name, &p->credentials_callback);
 	fci.retval = &retval;
 	fci.param_count = 3;
 	fci.params = argv;
 	fci.no_separation = 0;
-	fci.symbol_table = NULL;
 
 	error = zend_call_function(&fci, &p->fci_cache);
 
