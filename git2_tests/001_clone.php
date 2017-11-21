@@ -13,3 +13,7 @@ $repo = Git2\Repository::clone('https://github.com/MagicalTux/php-git2.git', $tm
 #var_dump($repo->checkout_head());
 var_dump($repo->head());
 
+foreach(Git2\Reference::list($repo) as $ref) {
+	echo "Ref: ".$ref->name()." --> ".bin2hex($ref->target())."\n";
+}
+

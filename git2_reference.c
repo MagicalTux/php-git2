@@ -82,14 +82,13 @@ ZEND_END_ARG_INFO()
 
 static int git2_reference_list_callback(git_reference *ref, void *payload) {
 	git2_reference_object_t *intern;
-	zval *obj;
-	ALLOC_ZVAL(obj);
+	zval obj;
 
-	object_init_ex(obj, php_git2_reference_ce);
-	intern = (git2_reference_object_t*)Z_OBJ_P(obj);
+	object_init_ex(&obj, php_git2_reference_ce);
+	intern = (git2_reference_object_t*)Z_OBJ_P(&obj);
 	intern->ref = ref;
 
-	add_next_index_zval((zval*)payload, obj);
+	add_next_index_zval((zval*)payload, &obj);
 	return 0;
 }
 
@@ -108,7 +107,7 @@ static PHP_METHOD(Reference, list) {
 
 	array_init(return_value);
 
-	int res = git_reference_foreach(repo, git2_reference_list_callback, &return_value);
+	int res = git_reference_foreach(repo, git2_reference_list_callback, return_value);
 	if (res != 0) {
 		git2_throw_last_error();
 		return;
