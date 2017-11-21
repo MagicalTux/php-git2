@@ -45,6 +45,11 @@ static PHP_METHOD(Reference, lookup_name) {
 	}
 }
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_reference_dwim, 0, 0, 2)
+	ZEND_ARG_OBJ_INFO(0, repository, Git2\\Repository, 0)
+	ZEND_ARG_INFO(0, name)
+ZEND_END_ARG_INFO()
+
 static PHP_METHOD(Reference, dwim) {
 	zval *z_repo;
 	git_repository *repo;
@@ -213,7 +218,7 @@ static void php_git2_reference_free_object(zend_object *object TSRMLS_DC) {
 
 static zend_function_entry git2_reference_methods[] = {
 	PHP_ME(Reference, lookup_name, arginfo_reference_lookup_name, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
-	PHP_ME(Reference, dwim, arginfo_reference_lookup_name, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(Reference, dwim, arginfo_reference_dwim, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_ME(Reference, name, arginfo_reference_name, ZEND_ACC_PUBLIC)
 	PHP_ME(Reference, is_branch, arginfo_reference_is_branch, ZEND_ACC_PUBLIC)
 	PHP_ME(Reference, is_remote, arginfo_reference_is_remote, ZEND_ACC_PUBLIC)
