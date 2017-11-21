@@ -45,6 +45,32 @@ static PHP_METHOD(Reference, lookup_name) {
 	}
 }
 
+static PHP_METHOD(Reference, dwim) {
+	zval *z_repo;
+	git_repository *repo;
+	char *name;
+	size_t name_len;
+	git2_reference_object_t *intern;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Os", &z_repo, git2_reference_class_entry(), &name, &name_len) == FAILURE)
+		return;
+
+	repo = git2_repository_fetch_from_zval(z_repo);
+	if (repo == NULL) {
+		git2_throw_exception(0 TSRMLS_CC, "Parameter must be a valid git repository");
+		return;
+	}
+
+	object_init_ex(return_value, php_git2_reference_ce);
+	intern = (git2_reference_object_t*)Z_OBJ_P(return_value);
+	int res = git_reference_dwim(&intern->ref, repo, name);
+
+	if (res != 0) {
+		git2_throw_last_error();
+		return;
+	}
+}
+
 
 #define GIT2_REFERENCE_FETCH() git2_reference_object_t *intern = (git2_reference_object_t*)Z_OBJ_P(getThis()); \
 	if (intern->ref == NULL) { \
@@ -187,6 +213,7 @@ static void php_git2_reference_free_object(zend_object *object TSRMLS_DC) {
 
 static zend_function_entry git2_reference_methods[] = {
 	PHP_ME(Reference, lookup_name, arginfo_reference_lookup_name, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(Reference, dwim, arginfo_reference_lookup_name, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_ME(Reference, name, arginfo_reference_name, ZEND_ACC_PUBLIC)
 	PHP_ME(Reference, is_branch, arginfo_reference_is_branch, ZEND_ACC_PUBLIC)
 	PHP_ME(Reference, is_remote, arginfo_reference_is_remote, ZEND_ACC_PUBLIC)
