@@ -9,7 +9,7 @@ fi
 if [ ! -f libgit2/build/libgit2.a ]; then
 	echo "Building libgit2..."
 	cd libgit2/build
-	cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_C_FLAGS=-fPIC -DUSE_SSH=ON .. >libgit2_cmake_init.log 2>&1
+	cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_C_FLAGS=-fPIC -DUSE_SSH=ON -DBUILD_CLAR=OFF .. >libgit2_cmake_init.log 2>&1
 	cmake --build . >libgit2_cmake_compile.log 2>&1
 fi
 

@@ -162,7 +162,7 @@ static PHP_METHOD(Remote, connect) {
 	}
 
 	// TODO handle callbacks
-	int res = git_remote_connect(intern->remote, is_push ? GIT_DIRECTION_PUSH : GIT_DIRECTION_FETCH, NULL, NULL);
+	int res = git_remote_connect(intern->remote, is_push ? GIT_DIRECTION_PUSH : GIT_DIRECTION_FETCH, NULL, NULL, NULL);
 
 	if (res == 0) {
 		RETURN_TRUE;
